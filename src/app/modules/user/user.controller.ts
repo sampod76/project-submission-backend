@@ -1,13 +1,16 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AbstractController } from "../../core/abstract/AbstractController";
 import type { ValidatedResponse } from "../../middlewares/validateRequestZod";
+import { ApiError } from "../../errors/ApiError";
 import type {
   IUserService,
   UserListResponse,
   UserResponse,
 } from "./user.interface";
 import {
+  updateProfileZodSchema,
+  updateUserStatusZodSchema,
   getUserZodSchema,
   listUsersZodSchema,
   updateUserZodSchema,
@@ -18,6 +21,41 @@ export class UserController extends AbstractController {
     super();
   }
 
+  profile = this.catchAsync(async (req: Request, res: Response) => {
+    this.sendResponse(res, {
+      statusCode: 200,
+      data: await this.service.ownProfile(req.user!),
+    });
+  });
+  updateProfile = this.catchAsync(
+    async (
+      req: Request,
+      res: ValidatedResponse<typeof updateProfileZodSchema>,
+    ) => {
+      this.sendResponse(res, {
+        statusCode: 200,
+        data: await this.service.updateProfile(
+          req.user!,
+          res.locals.validated.body,
+        ),
+      });
+    },
+  );
+  updateStatus = this.catchAsync(
+    async (
+      req: Request,
+      res: ValidatedResponse<typeof updateUserStatusZodSchema>,
+    ) => {
+      this.sendResponse(res, {
+        statusCode: 200,
+        data: await this.service.updateStatus(
+          res.locals.validated.params.id,
+          res.locals.validated.body.isActive,
+          req.user!,
+        ),
+      });
+    },
+  );
   findMany = this.catchAsync(
     async (req: Request, res: ValidatedResponse<typeof listUsersZodSchema>) => {
       const result = await this.service.findAll(res.locals.validated.query);
@@ -44,6 +82,13 @@ export class UserController extends AbstractController {
       req: Request,
       res: ValidatedResponse<typeof updateUserZodSchema>,
     ) => {
+      if (
+        res.locals.validated.body.isActive === false &&
+        res.locals.validated.params.id.toLowerCase() ===
+          req.user?.userId.toLowerCase()
+      ) {
+        throw new ApiError(409, "You cannot deactivate your own account");
+      }
       const user = await this.service.update(
         res.locals.validated.params.id,
         res.locals.validated.body,

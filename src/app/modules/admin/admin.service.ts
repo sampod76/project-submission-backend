@@ -20,7 +20,7 @@ import {
 export class AdminService extends AbstractService implements IAdminService {
   constructor(
     private readonly userService: IUserService,
-    private readonly repository: IAdminRepository = adminRepository,
+    private readonly repository: IAdminRepository,
   ) {
     super();
   }
@@ -46,7 +46,9 @@ export class AdminService extends AbstractService implements IAdminService {
         {
           data: {
             userId: user.id,
-            name: payload.name,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            bio: payload.bio,
             phone: payload.phone,
           },
         },
@@ -91,7 +93,9 @@ export class AdminService extends AbstractService implements IAdminService {
             select: {
               id: true,
               userId: true,
-              name: true,
+              firstName: true,
+              lastName: true,
+              bio: true,
               phone: true,
               isDeleted: true,
               deletedAt: true,

@@ -13,6 +13,9 @@ const authUser = {
 const query = { page: 2, limit: 5 };
 const result = { data: [], meta: { page: 2, limit: 5, total: 0 } };
 const service: IUserService = {
+  ownProfile: jest.fn(),
+  updateProfile: jest.fn(),
+  updateStatus: jest.fn(),
   createAccount: jest.fn(),
   findOne: jest.fn(),
   findAll: jest.fn(),

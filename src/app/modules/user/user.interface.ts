@@ -15,13 +15,27 @@ import type {
   CreateAccountDto,
   ListUsersQuery,
   UpdateUserDto,
+  UpdateProfileDto,
 } from "./user.validation";
 
 export type UserResponse = Omit<User, "password">;
 export type UserListResponse = Awaited<
   ReturnType<UserService["findAll"]>
 >["data"][number];
+export type UserProfileResponse = Prisma.UserGetPayload<{
+  select: typeof import("./user.select").USER_PROFILE_SELECT;
+}>;
 export interface IUserService {
+  ownProfile(authUser: IUserRef): Promise<UserProfileResponse>;
+  updateProfile(
+    authUser: IUserRef,
+    payload: UpdateProfileDto,
+  ): Promise<UserProfileResponse>;
+  updateStatus(
+    id: string,
+    isActive: boolean,
+    authUser: IUserRef,
+  ): Promise<UserResponse>;
   createAccount(
     payload: CreateAccountDto,
     tx?: PrismaOrTx,

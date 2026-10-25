@@ -1,3 +1,6 @@
+import { USER_PROFILE_SELECT } from "./user.select";
+import type { UpdateProfileDto } from "./user.validation";
+import { auditLogService } from "../audit-log/audit-log.service";
 import { orderBy } from "../../share/prisma/query-options";
 import { UserQueryBuilder } from "./builders/UserQueryBuilder";
 import type { Prisma } from "@prisma/client";
@@ -157,6 +160,82 @@ export class UserService extends AbstractService implements IUserService {
       omit: { password: true },
     });
     authCache.invalidateAuthUserCache(user.id);
+    return user;
+  }
+  async ownProfile(authUser: IUserRef) {
+    const user = await this.repository.findFirst({
+      where: {
+        id: authUser.userId,
+        role: authUser.role,
+        isDeleted: false,
+        isActive: true,
+      },
+      select: USER_PROFILE_SELECT,
+    });
+    if (!user) throw new ApiError(404, "User not found");
+    return user;
+  }
+  async updateProfile(authUser: IUserRef, payload: UpdateProfileDto) {
+    const profile =
+      authUser.role === "ADMIN"
+        ? "admin"
+        : authUser.role === "MENTOR"
+          ? "mentor"
+          : "student";
+    return this.repository.update({
+      where: {
+        id: authUser.userId,
+        role: authUser.role,
+        isDeleted: false,
+        isActive: true,
+      },
+      data: {
+        [profile]: { update: { where: { isDeleted: false }, data: payload } },
+      },
+      select: USER_PROFILE_SELECT,
+    });
+  }
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+    authUser: IUserRef,
+  ): Promise<UserResponse> {
+    this.validateId(id);
+    if (authUser.role !== USER_ROLE.ADMIN)
+      throw new ApiError(403, "Forbidden access");
+    if (id.toLowerCase() === authUser.userId.toLowerCase() && !isActive)
+      throw new ApiError(409, "You cannot deactivate your own account");
+    const user = await this.repository.transaction(async tx => {
+      const existing = await this.repository.findFirst(
+        {
+          where: { id, isDeleted: false },
+          select: { id: true, isActive: true },
+        },
+        tx,
+      );
+      if (!existing) throw new ApiError(404, "User not found");
+      const result = await this.repository.update(
+        {
+          where: { id, isDeleted: false },
+          data: { isActive },
+          omit: { password: true },
+        },
+        tx,
+      );
+      await auditLogService.record(
+        {
+          actorUserId: authUser.userId,
+          action: "USER_STATUS_CHANGED",
+          entityType: "User",
+          entityId: id,
+          oldData: { isActive: existing.isActive },
+          newData: { isActive },
+        },
+        tx,
+      );
+      return result;
+    });
+    authCache.invalidateAuthUserCache(id);
     return user;
   }
   async findByRole(role: USER_ROLE): Promise<UserResponse[]> {

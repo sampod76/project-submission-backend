@@ -24,7 +24,7 @@ test("combines text search with inclusive UTC date bounds", () => {
     )
     .build();
   expect(where.OR).toContainEqual({
-    name: { contains: "Alex", mode: "insensitive" },
+    firstName: { contains: "Alex", mode: "insensitive" },
   });
   expect(where.createdAt).toEqual({
     gte: new Date("2026-01-01T00:00:00.000Z"),

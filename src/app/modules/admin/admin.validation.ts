@@ -8,8 +8,10 @@ import { createAccountZodSchema } from "../user/user.validation";
 
 const body = z
   .object({
-    name: z.string().trim().min(2).max(100),
-    phone: z.string().trim().min(6).max(20),
+    firstName: z.string().trim().min(1).max(100),
+    lastName: z.string().trim().min(1).max(100),
+    bio: z.string().nullable().optional(),
+    phone: z.string().trim().max(20).nullable().optional(),
   })
   .strict();
 export const createAdminZodSchema = z.object({

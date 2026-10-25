@@ -5,7 +5,9 @@ const id = "12345678-1234-4abc-8def-123456789abc";
 test("accepts valid admin input", () => {
   const result = createAdminZodSchema.safeParse({
     body: {
-      name: "Admin",
+      firstName: "Test",
+      lastName: "Admin",
+      bio: null,
       phone: "01234567890",
       email: "admin@example.com",
       password: "Password123",
@@ -15,7 +17,7 @@ test("accepts valid admin input", () => {
 });
 
 test("rejects missing required fields", () => {
-  const result = createAdminZodSchema.safeParse({ body: { name: "A" } });
+  const result = createAdminZodSchema.safeParse({ body: { firstName: "A" } });
   expect(result.success).toBe(false);
 });
 

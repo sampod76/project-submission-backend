@@ -12,8 +12,9 @@ test("lists records with pagination, sorting, and a total count", async () => {
     {
       id: "12345678-1234-4abc-8def-123456789abc",
       email: "user@example.com",
-      role: "DOCTOR" as const,
+      role: "MENTOR" as const,
       isActive: true,
+      lastLoginAt: null,
       isDeleted: false,
       deletedAt: null,
       createdAt: new Date(0),

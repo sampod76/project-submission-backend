@@ -6,7 +6,7 @@ test("accepts valid account input", () => {
   const result = createAccountZodSchema.safeParse({
     email: "USER@example.com",
     password: "Password123",
-    role: "DOCTOR",
+    role: "MENTOR",
   });
   expect(result.success).toBe(true);
 });
@@ -15,7 +15,7 @@ test("rejects an invalid email and a short password", () => {
   const result = createAccountZodSchema.safeParse({
     email: "invalid",
     password: "short",
-    role: "DOCTOR",
+    role: "MENTOR",
   });
   expect(result.success).toBe(false);
 });

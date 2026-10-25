@@ -14,7 +14,9 @@ test("lists records with pagination, sorting, and a total count", async () => {
     {
       id: "12345678-1234-4abc-8def-123456789abc",
       userId: "12345678-1234-4abc-8def-123456789abc",
-      name: "Admin",
+      firstName: "Test",
+      lastName: "Admin",
+      bio: null,
       phone: "01234567890",
       isDeleted: false,
       deletedAt: null,
@@ -32,7 +34,7 @@ test("lists records with pagination, sorting, and a total count", async () => {
   const query = {
     page: 2,
     limit: 5,
-    sortBy: "name",
+    sortBy: "firstName",
     sortOrder: "asc",
   } as const;
   const authUser = {
@@ -48,7 +50,7 @@ test("lists records with pagination, sorting, and a total count", async () => {
       where: { isDeleted: false },
       skip: 5,
       take: 5,
-      orderBy: [{ name: "asc" }, { id: "asc" }],
+      orderBy: [{ firstName: "asc" }, { id: "asc" }],
     }),
     prisma,
   );
