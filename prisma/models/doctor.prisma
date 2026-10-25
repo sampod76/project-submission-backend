@@ -1,0 +1,43 @@
+
+enum Specialization {
+  CARDIOLOGY
+  DENTISTRY
+  DERMATOLOGY
+  ENT
+  GENERAL_MEDICINE
+  GENERAL_SURGERY
+  GYNECOLOGY
+  NEUROLOGY
+  OPHTHALMOLOGY
+  ORTHOPEDICS
+  OTHER
+  PEDIATRICS
+  PSYCHIATRY
+}
+
+model Doctor {
+  id                    String         @id @default(uuid()) @db.Uuid
+  // 
+  userId                String         @unique @map("user_id") @db.Uuid
+  user                  User           @relation("DoctorAccount", fields: [userId], references: [id], onDelete: Restrict)
+  // 
+  createdBy             String         @map("created_by") @db.Uuid
+  creator               User           @relation("DoctorCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  // 
+  name                  String         @db.VarChar(100)
+  medicalRegistrationNo String         @unique @map("medical_registration_no") @db.VarChar(100)
+  email                 String
+  specialization        Specialization
+  hospital              String         @db.VarChar(200)
+  phone                 String         @db.VarChar(20)
+  isActive              Boolean        @default(true) @map("is_active")
+  isDeleted             Boolean        @default(false) @map("is_deleted")
+  deletedAt             DateTime?      @map("deleted_at") @db.Timestamptz(3)
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  patients              Patient[]
+
+  @@index([isDeleted, createdAt(sort: Desc)])
+  @@index([specialization, isDeleted, isActive])
+  @@map("doctors")
+}

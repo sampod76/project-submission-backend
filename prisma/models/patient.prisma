@@ -1,0 +1,38 @@
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
+}
+
+enum TreatmentStatus {
+  ACTIVE
+  RECOVERED
+  UNDER_OBSERVATION
+}
+
+model Patient {
+  id               String          @id @default(uuid()) @db.Uuid
+  name             String          @db.VarChar(100)
+  phone            String          @db.VarChar(20)
+  // 
+  doctorId         String          @map("doctor_id") @db.Uuid
+  doctor           Doctor          @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  // 
+  age              Float
+  gender           Gender
+  address          String?         @db.VarChar(500)
+  patientComplaint String          @map("patient_complaint") @db.VarChar(5000)
+  doctorAdvice     String?         @map("doctor_advice") @db.VarChar(5000)
+  notes            String?         @db.VarChar(5000)
+  treatmentStatus  TreatmentStatus @default(ACTIVE) @map("treatment_status")
+  lastVisitAt      DateTime?       @map("last_visit_at") @db.Timestamptz(3)
+  followUpDate     DateTime?       @map("follow_up_date") @db.Timestamptz(3)
+  isDeleted        Boolean         @default(false) @map("is_deleted")
+  deletedAt        DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([doctorId, isDeleted, createdAt(sort: Desc)])
+  @@index([doctorId, isDeleted, phone])
+  @@map("patients")
+}

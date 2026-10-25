@@ -1,0 +1,27 @@
+import { Request } from "express";
+import ApiError from "../app/errors/ApiError";
+import { IMulterUploadFile } from "../app/interfaces/fileUpload";
+import { unlinkFile } from "../utils/unlinkFile";
+
+export const requestToDeleteFile = (req: Request) => {
+  try {
+    const file = req.file as IMulterUploadFile;
+    if (file?.filename) unlinkFile(file.path);
+    else if (req.files)
+      if (req.files instanceof Array && req.files?.length)
+        req.files.forEach(file => {
+          unlinkFile(file.path);
+        });
+      else
+        Object.entries(req.files as Record<string, any>).forEach(
+          ([key, _value]: [string, IMulterUploadFile[]]) => {
+            if (key && _value instanceof Array)
+              _value.forEach(value => {
+                unlinkFile(value.path);
+              });
+          },
+        );
+  } catch (error: any) {
+    throw new ApiError(400, error?.message || "Something went wrong");
+  }
+};

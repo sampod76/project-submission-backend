@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: doctor_tracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d doctor_tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - doctor-tracker-ai-network
+  migrate:
+    build:
+      context: .
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/doctor_tracker?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - doctor-tracker-ai-network
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: doctor-tracker-ai-server-local
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/doctor_tracker?schema=public
+      HOST: 0.0.0.0
+      PORT: 5000
+      LOG_DIR: /app/logger
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+    ports:
+      - "5062:5000"
+
+    volumes:
+      - app_logs:/app/logger
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:5000/health', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+    restart: unless-stopped
+
+    networks:
+      - doctor-tracker-ai-network
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  doctor-tracker-ai-network:
+    driver: bridge
+
+volumes:
+  app_logs:
+  postgres_data:
