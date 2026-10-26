@@ -9,11 +9,18 @@ export class StudentController extends AbstractController {
   }
   list = this.catchAsync(
     async (
-      _req: Request,
+      req: Request,
       res: ValidatedResponse<typeof listStudentsZodSchema>,
     ) => {
-      const result = await this.service.findAll(res.locals.validated.query);
-      this.sendResponse(res, { statusCode: 200, ...result });
+      const { query } = res.locals.validated;
+
+      const { data, meta } = await this.service.findAll(query, req.user!);
+
+      return this.sendResponse(res, {
+        statusCode: 200,
+        data,
+        meta,
+      });
     },
   );
 }

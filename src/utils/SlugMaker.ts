@@ -4,15 +4,13 @@ export class SlugMaker {
     const collapseSep = separator === "-" ? /-+/g : /_+/g;
     const trimSep = separator === "-" ? /^-+|-+$/g : /^_+|_+$/g;
 
-    return (
-      value
-        .trim()
-        .replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, "")
-        .replace(/\s+/g, spaceToSep)
-        .replace(collapseSep, spaceToSep)
-        .replace(trimSep, "")
-        .toLowerCase()
-    );
+    return value
+      .trim()
+      .replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, "")
+      .replace(/\s+/g, spaceToSep)
+      .replace(collapseSep, spaceToSep)
+      .replace(trimSep, "")
+      .toLowerCase();
   }
 
   static toDash(value: string): string {

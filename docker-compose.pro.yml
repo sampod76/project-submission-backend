@@ -1,11 +1,11 @@
 services:
   app:
-    image: ghcr.io/sampod76/doctor-tracker-ai-server:latest
-    container_name: doctor-tracker-ai-server
+    image: ghcr.io/sampod76/project-submission-backend:latest
+    container_name: project-submission-backend
     profiles: ["app"]
 
     env_file:
-      - /home/sampod/apps/envs/doctor/server/.env
+      - ${PROJECT_SUBMISSION_ENV_FILE:?Set PROJECT_SUBMISSION_ENV_FILE to the new application env file}
 
     environment:
       HOST: 0.0.0.0
@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
 
     networks:
-      - doctor-tracker-ai-network
+      - project-submission-backend-network
 
     logging:
       driver: json-file
@@ -44,7 +44,7 @@ services:
         max-file: "3"
 
 networks:
-  doctor-tracker-ai-network:
+  project-submission-backend-network:
     driver: bridge
 
 volumes:

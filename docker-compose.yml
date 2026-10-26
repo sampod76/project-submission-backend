@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:17
     environment:
-      POSTGRES_DB: doctor_tracker
+      POSTGRES_DB: project_submission
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
@@ -10,35 +10,35 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d doctor_tracker"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d project_submission"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - doctor-tracker-ai-network
+      - project-submission-backend-network
   migrate:
     build:
       context: .
       target: migrate
     environment:
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/doctor_tracker?schema=public
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/project_submission?schema=public
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - doctor-tracker-ai-network
+      - project-submission-backend-network
   app:
     build:
       context: .
       dockerfile: Dockerfile
 
-    container_name: doctor-tracker-ai-server-local
+    container_name: project-submission-backend-local
 
     env_file:
       - .env
 
     environment:
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/doctor_tracker?schema=public
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/project_submission?schema=public
       HOST: 0.0.0.0
       PORT: 5000
       LOG_DIR: /app/logger
@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
     networks:
-      - doctor-tracker-ai-network
+      - project-submission-backend-network
 
     logging:
       driver: json-file
@@ -80,7 +80,7 @@ services:
         max-file: "3"
 
 networks:
-  doctor-tracker-ai-network:
+  project-submission-backend-network:
     driver: bridge
 
 volumes:

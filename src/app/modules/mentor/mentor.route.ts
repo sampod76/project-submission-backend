@@ -1,3 +1,4 @@
+import type { AuthMiddleware } from "../../middlewares/authMiddleware";
 import { AbstractRoute } from "../../core/abstract/AbstractRoute";
 import type { MentorController } from "./mentor.controller";
 import {
@@ -5,8 +6,11 @@ import {
   createMentorZodSchema,
 } from "./mentor.validation";
 export class MentorRoutes extends AbstractRoute {
-  constructor(private readonly controller: MentorController) {
-    super();
+  constructor(
+    private readonly controller: MentorController,
+    authMiddleware: AuthMiddleware,
+  ) {
+    super(authMiddleware);
     this.init();
   }
   protected init(): void {

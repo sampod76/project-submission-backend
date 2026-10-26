@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import authMiddleware from "../../middlewares/authMiddleware";
+import type { AuthMiddleware } from "../../middlewares/authMiddleware";
 
 import validateRequestZod from "../../middlewares/validateRequestZod";
 
@@ -8,7 +8,7 @@ import { USER_ROLE } from "../../../global/enums/users";
 export abstract class AbstractRoute {
   public readonly router: Router = express.Router();
 
-  protected readonly authMiddleware = authMiddleware;
+  constructor(protected readonly authMiddleware: AuthMiddleware) {}
 
   protected readonly validateRequestZod = validateRequestZod;
 

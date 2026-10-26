@@ -18,12 +18,14 @@ export const createAccountZodSchema = z
 
 export const updateUserZodSchema = z.object({
   params: z.object({ id: uuidSchema }),
-  body: z.object({
-    email: z.string().trim().email().max(255).toLowerCase().optional(),
-    password: passwordSchema.optional(),
-    role: z.nativeEnum(USER_ROLE).optional(),
-    isActive: z.boolean().optional(),
-  }),
+  body: z
+    .object({
+      email: z.string().trim().email().max(255).toLowerCase().optional(),
+      password: passwordSchema.optional(),
+      role: z.nativeEnum(USER_ROLE).optional(),
+      isActive: z.boolean().optional(),
+    })
+    .strict(),
 });
 
 export const getUserZodSchema = z.object({

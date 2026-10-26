@@ -1,8 +1,14 @@
+import { prisma } from "../../share/prisma/prisma";
+import { authCache } from "../../../helper/authCache";
+import { auditLogService } from "../audit-log/audit-log.container";
+import { UserRepository } from "./user.repository";
+import { UserService } from "./user.service";
 import { UserController } from "./user.controller";
 
-import { UserRoutes } from "./user.route";
-import { UserService } from "./user.service";
-
-export const userService = new UserService();
+export const userRepository = new UserRepository(prisma);
+export const userService = new UserService(
+  userRepository,
+  auditLogService,
+  authCache,
+);
 export const userController = new UserController(userService);
-export const userRoutes = new UserRoutes(userController);

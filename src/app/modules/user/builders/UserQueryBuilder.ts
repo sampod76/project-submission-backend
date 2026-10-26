@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { UTCDateFormatter } from "../../../../utils/UTCDateFormatter";
 import { escapeLike } from "../../../share/prisma/query-options";
-import { USER_SEARCHABLE_FIELDS } from "../user.constant";
 import type { ListUsersQuery } from "../user.validation";
 
 export class UserQueryBuilder {
@@ -9,27 +8,28 @@ export class UserQueryBuilder {
 
   addSearch(search?: string): this {
     if (!search) return this;
-    this.where.OR = USER_SEARCHABLE_FIELDS.map(field => ({
-      [field]: { contains: escapeLike(search), mode: "insensitive" },
-    }));
+    this.where.OR = [
+      { email: { contains: escapeLike(search), mode: "insensitive" } },
+    ];
     return this;
   }
 
   addFilters(filter: ListUsersQuery): this {
-    if (filter.role !== undefined) this.where.role = filter.role;
-    if (filter.isActive !== undefined) this.where.isActive = filter.isActive;
-    if (filter.ids) this.where.id = { in: filter.ids };
+    const { role, isActive, ids } = filter;
+
+    if (role !== undefined) this.where.role = role;
+    if (isActive !== undefined) this.where.isActive = isActive;
+    if (ids) this.where.id = { in: ids };
     return this;
   }
 
   addDateRange(fromDate?: Date, toDate?: Date): this {
     if (!fromDate && !toDate) return this;
-    this.where.createdAt = {
-      ...(fromDate ? { gte: fromDate } : {}),
-      ...(toDate
-        ? { lte: new UTCDateFormatter({ date: toDate }).endOfDayUtc() }
-        : {}),
-    };
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (fromDate) createdAt.gte = fromDate;
+    if (toDate)
+      createdAt.lte = new UTCDateFormatter({ date: toDate }).endOfDayUtc();
+    this.where.createdAt = createdAt;
     return this;
   }
 

@@ -23,11 +23,12 @@ export class AdminController extends AbstractController {
       req: Request,
       res: ValidatedResponse<typeof createAdminZodSchema>,
     ) => {
-      const data = await this.service.create(
-        res.locals.validated.body,
-        req.user!,
-      );
-      this.sendResponse<AdminResponse>(res, {
+      const { body } = res.locals.validated;
+      const user = req.user!;
+
+      const data = await this.service.create(body, user);
+
+      return this.sendResponse<AdminResponse>(res, {
         statusCode: httpStatus.CREATED,
         message: "Admin created",
         data,
@@ -40,21 +41,25 @@ export class AdminController extends AbstractController {
       res: ValidatedResponse<typeof listAdminsZodSchema>,
     ) => {
       const { query } = res.locals.validated;
-      const result = await this.service.findAll(query, req.user!);
-      this.sendResponse<AdminListResponse[]>(res, {
+      const user = req.user!;
+
+      const { data, meta } = await this.service.findAll(query, user);
+
+      return this.sendResponse<AdminListResponse[]>(res, {
         statusCode: httpStatus.OK,
-        data: result.data,
-        meta: result.meta,
+        data,
+        meta,
       });
     },
   );
   getById = this.catchAsync(
     async (req: Request, res: ValidatedResponse<typeof getAdminZodSchema>) => {
-      const data = await this.service.findOne(
-        res.locals.validated.params.id,
-        req.user!,
-      );
-      this.sendResponse<AdminDetailResponse>(res, {
+      const { params } = res.locals.validated;
+      const user = req.user!;
+
+      const data = await this.service.findOne(params.id, user);
+
+      return this.sendResponse<AdminDetailResponse>(res, {
         statusCode: httpStatus.OK,
         data,
       });
@@ -65,12 +70,12 @@ export class AdminController extends AbstractController {
       req: Request,
       res: ValidatedResponse<typeof updateAdminZodSchema>,
     ) => {
-      const data = await this.service.update(
-        res.locals.validated.params.id,
-        res.locals.validated.body,
-        req.user!,
-      );
-      this.sendResponse<AdminResponse>(res, {
+      const { params, body } = res.locals.validated;
+      const user = req.user!;
+
+      const data = await this.service.update(params.id, body, user);
+
+      return this.sendResponse<AdminResponse>(res, {
         statusCode: httpStatus.OK,
         message: "Admin updated",
         data,
@@ -79,11 +84,12 @@ export class AdminController extends AbstractController {
   );
   remove = this.catchAsync(
     async (req: Request, res: ValidatedResponse<typeof getAdminZodSchema>) => {
-      const data = await this.service.softDelete(
-        res.locals.validated.params.id,
-        req.user!,
-      );
-      this.sendResponse<AdminResponse>(res, {
+      const { params } = res.locals.validated;
+      const user = req.user!;
+
+      const data = await this.service.softDelete(params.id, user);
+
+      return this.sendResponse<AdminResponse>(res, {
         statusCode: httpStatus.OK,
         message: "Admin deleted",
         data,

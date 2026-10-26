@@ -9,10 +9,14 @@ const createClient = () =>
 export type AppPrismaClient = ReturnType<typeof createClient>;
 
 export class PrismaClientSingleton {
-  private static instance: AppPrismaClient | undefined;
+  private static instance: AppPrismaClient;
 
   static getInstance(): AppPrismaClient {
-    return (this.instance ??= createClient());
+    if (!this.instance) {
+      this.instance = createClient();
+    }
+
+    return this.instance;
   }
 }
 

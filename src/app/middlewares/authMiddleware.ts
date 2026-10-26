@@ -2,10 +2,10 @@ import { isValidId } from "../../global/schema/global.schema";
 import type { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { USER_ROLE } from "../../global/enums/users";
-import { type CachedAuthUser, authCache } from "../../helper/authCache";
 import { accessTokenSecret, jwtHelpers } from "../../helper/jwtHelpers";
 import { ApiError } from "../errors/ApiError";
-import { userRepository } from "../modules/user/user.repository";
+import type { IUserRepository } from "../modules/user/user.interface";
+import { authCache } from "../../helper/authCache";
 
 interface AuthTokenPayload {
   userId: string;
@@ -22,6 +22,7 @@ const extractBearerToken = (
     throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED_MESSAGE);
 
   const parts = authorizationHeader.trim().split(/\s+/);
+
   const hasInvalidAuthorizationHeader =
     parts.length !== 2 || parts[0].toLowerCase() !== "bearer" || !parts[1];
   if (hasInvalidAuthorizationHeader)
@@ -30,7 +31,8 @@ const extractBearerToken = (
   return parts[1];
 };
 
-const authMiddleware =
+export const createAuthMiddleware =
+  (repository: IUserRepository) =>
   (...requiredUserTypes: USER_ROLE[]) =>
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -60,28 +62,26 @@ const authMiddleware =
       if (isTokenRoleForbidden)
         throw new ApiError(httpStatus.FORBIDDEN, FORBIDDEN_MESSAGE);
 
-      let user: CachedAuthUser | null =
-        authCache.getCachedAuthUser(payload.userId) ?? null;
+      let user = authCache.getCachedAuthUser(payload.userId);
 
       if (!user) {
-        const dbUser = await userRepository.findFirst({
+        const dbUser = await repository.findFirst({
           where: { id: payload.userId, isDeleted: false },
-          select: { id: true, email: true, role: true, isActive: true },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            isActive: true,
+          },
         });
 
-        if (dbUser) {
-          user = {
-            id: dbUser.id,
-            email: dbUser.email,
-            role: dbUser.role,
-            isActive: dbUser.isActive,
-          };
-          authCache.setCachedAuthUser(user);
+        if (!dbUser) {
+          throw new ApiError(httpStatus.UNAUTHORIZED, "User no longer exists");
         }
-      }
 
-      if (!user)
-        throw new ApiError(httpStatus.UNAUTHORIZED, "User no longer exists");
+        user = dbUser;
+        authCache.setCachedAuthUser(user);
+      }
 
       const isUserRoleForbidden =
         requiredUserTypes.length > 0 && !requiredUserTypes.includes(user.role);
@@ -103,4 +103,4 @@ const authMiddleware =
     }
   };
 
-export default authMiddleware;
+export type AuthMiddleware = ReturnType<typeof createAuthMiddleware>;

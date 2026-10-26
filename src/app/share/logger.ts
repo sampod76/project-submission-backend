@@ -1,19 +1,32 @@
 import path from "path";
+import { inspect } from "util";
 import { createLogger, format, transports } from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import { env } from "../config/env";
 
 const { combine, timestamp, label, printf, errors } = format;
 
-const myFormat = printf(({ level, message, label, timestamp, stack }) => {
+const myFormat = printf(info => {
+  const { level, message, label, timestamp, stack, ...metadata } = info;
   const date = new Date(timestamp as string | number | Date);
-  return `${date.toISOString()} [${label}] ${level}: ${stack || message}`;
+  const details = stack || message;
+  const renderedMessage =
+    typeof details === "string"
+      ? details
+      : inspect(details, { depth: null, colors: false, compact: false });
+  const renderedMetadata = Object.keys(metadata).length
+    ? `\n${inspect(metadata, { depth: null, colors: false, compact: false })}`
+    : "";
+
+  return `${date.toISOString()} [${label}] ${level}: ${renderedMessage}${renderedMetadata}`;
 });
 
 const baseFormat = combine(
   label({
     label:
-      env.NODE_ENV === "production" ? "doctorTracker-app" : "doctorTracker-dev",
+      env.NODE_ENV === "production"
+        ? "project-submission-backend-app"
+        : "project-submission-backend-dev",
   }),
   timestamp(),
   errors({ stack: true }),
@@ -31,7 +44,7 @@ const logger = createLogger({
         "logger",
         "winston",
         "successes",
-        "doctorTracker-%DATE%-success.log",
+        "project-submission-backend-%DATE%-success.log",
       ),
       datePattern: "YYYY-MM-DD-HH",
       zippedArchive: true,
@@ -52,7 +65,7 @@ const errorLogger = createLogger({
         "logger",
         "winston",
         "errors",
-        "doctorTracker-%DATE%-error.log",
+        "project-submission-backend-%DATE%-error.log",
       ),
       datePattern: "YYYY-MM-DD-HH",
       zippedArchive: true,

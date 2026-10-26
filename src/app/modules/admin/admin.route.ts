@@ -1,3 +1,4 @@
+import type { AuthMiddleware } from "../../middlewares/authMiddleware";
 import { AbstractRoute } from "../../core/abstract/AbstractRoute";
 import { AdminController } from "./admin.controller";
 import {
@@ -7,8 +8,11 @@ import {
   updateAdminZodSchema,
 } from "./admin.validation";
 export class AdminRoutes extends AbstractRoute {
-  constructor(private readonly controller: AdminController) {
-    super();
+  constructor(
+    private readonly controller: AdminController,
+    authMiddleware: AuthMiddleware,
+  ) {
+    super(authMiddleware);
     this.init();
   }
   protected init(): void {

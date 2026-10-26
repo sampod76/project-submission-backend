@@ -12,11 +12,18 @@ export class MentorController extends AbstractController {
   }
   list = this.catchAsync(
     async (
-      _req: Request,
+      req: Request,
       res: ValidatedResponse<typeof listMentorsZodSchema>,
     ) => {
-      const result = await this.service.findAll(res.locals.validated.query);
-      this.sendResponse(res, { statusCode: 200, ...result });
+      const { query } = res.locals.validated;
+
+      const { data, meta } = await this.service.findAll(query, req.user!);
+
+      return this.sendResponse(res, {
+        statusCode: 200,
+        data,
+        meta,
+      });
     },
   );
   create = this.catchAsync(
@@ -24,10 +31,15 @@ export class MentorController extends AbstractController {
       req: Request,
       res: ValidatedResponse<typeof createMentorZodSchema>,
     ) => {
-      this.sendResponse(res, {
+      const { body } = res.locals.validated;
+      const user = req.user!;
+
+      const data = await this.service.create(body, user);
+
+      return this.sendResponse(res, {
         statusCode: 201,
         message: "Mentor created",
-        data: await this.service.create(res.locals.validated.body, req.user!),
+        data,
       });
     },
   );

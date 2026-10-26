@@ -14,4 +14,4 @@ process.env.JWT_REFRESH_SECRET =
   "test-jwt-refresh-secret-must-be-long-enough";
 process.env.DATABASE_URL =
   process.env.TEST_DATABASE_URL ||
-  "postgresql://postgres:postgres@localhost:5432/doctor_tracker_test?schema=public";
+  "postgresql://postgres:postgres@localhost:5432/project_submission_test?schema=public";

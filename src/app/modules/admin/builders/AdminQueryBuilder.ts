@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { UTCDateFormatter } from "../../../../utils/UTCDateFormatter";
 import { escapeLike } from "../../../share/prisma/query-options";
-import { ADMIN_SEARCHABLE_FIELDS } from "../admin.constant";
 import type { ListAdminsQuery } from "../admin.validation";
 
 export class AdminQueryBuilder {
@@ -9,25 +8,32 @@ export class AdminQueryBuilder {
 
   addSearch(search?: string): this {
     if (!search) return this;
-    this.where.OR = ADMIN_SEARCHABLE_FIELDS.map(field => ({
-      [field]: { contains: escapeLike(search), mode: "insensitive" },
-    }));
+    const searchFilter: Prisma.StringFilter = {
+      contains: escapeLike(search),
+      mode: "insensitive",
+    };
+    this.where.OR = [
+      { firstName: searchFilter },
+      { lastName: searchFilter },
+      { phone: searchFilter },
+    ];
     return this;
   }
 
   addFilters(filter: ListAdminsQuery): this {
-    if (filter.userId) this.where.userId = filter.userId;
+    const { userId } = filter;
+
+    if (userId) this.where.userId = userId;
     return this;
   }
 
   addDateRange(fromDate?: Date, toDate?: Date): this {
     if (!fromDate && !toDate) return this;
-    this.where.createdAt = {
-      ...(fromDate ? { gte: fromDate } : {}),
-      ...(toDate
-        ? { lte: new UTCDateFormatter({ date: toDate }).endOfDayUtc() }
-        : {}),
-    };
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (fromDate) createdAt.gte = fromDate;
+    if (toDate)
+      createdAt.lte = new UTCDateFormatter({ date: toDate }).endOfDayUtc();
+    this.where.createdAt = createdAt;
     return this;
   }
 

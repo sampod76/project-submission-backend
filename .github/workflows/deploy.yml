@@ -1,11 +1,11 @@
-name: Doctor Tracker Backend Deploy (GHCR + SSH)
+name: Project Submission Backend Deploy (GHCR + SSH)
 
 on:
   push:
     branches: [main]
 
 concurrency:
-  group: doctor-tracker-ai-backend:${{ github.ref }}
+  group: project-submission-backend:${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
 
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
 
-          IMAGE="ghcr.io/${OWNER}/doctor-tracker-ai-server:latest"
+          IMAGE="ghcr.io/${OWNER}/project-submission-backend:latest"
 
           echo "Building Docker image: ${IMAGE}"
 
@@ -53,9 +53,13 @@ jobs:
           script: |
             set -Eeuo pipefail
 
-            cd ~/apps/doctor-tracker-ai-server
+            cd ~/apps/project-submission-backend
 
             bash deploy.sh
 
       - name: Verify production CORS preflight
-        run: node scripts/check-cors.cjs https://api-doctor.iblossomlearn.org
+        if: vars.API_BASE_URL != '' && vars.WEB_ORIGIN != ''
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          WEB_ORIGIN: ${{ vars.WEB_ORIGIN }}
+        run: node scripts/check-cors.cjs "$API_BASE_URL" "$WEB_ORIGIN"
