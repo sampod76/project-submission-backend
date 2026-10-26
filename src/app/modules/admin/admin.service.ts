@@ -1,8 +1,8 @@
+import { requireAdmin } from "../../share/authorization";
 import { orderBy } from "../../share/prisma/query-options";
 import { AdminQueryBuilder } from "./builders/AdminQueryBuilder";
 import httpStatus from "http-status";
 import { USER_ROLE } from "../../../global/enums/users";
-import { isValidId } from "../../../global/schema/global.schema";
 import { AbstractService } from "../../core/abstract/AbstractService";
 import { ApiError } from "../../errors/ApiError";
 import type { IUserRef } from "../../interfaces/user.ref";
@@ -10,8 +10,7 @@ import type { AdminResponse } from "./admin.interface";
 
 import type { IUserService } from "../user/user.interface";
 import type { IAdminRepository, IAdminService } from "./admin.interface";
-import { adminRepository } from "./admin.repository";
-import {
+import type {
   CreateAdminDto,
   ListAdminsQuery,
   UpdateAdminDto,
@@ -24,15 +23,11 @@ export class AdminService extends AbstractService implements IAdminService {
   ) {
     super();
   }
-  private validateId(id: string): void {
-    const hasValidId = isValidId(id);
-    if (!hasValidId)
-      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid admin id");
-  }
   async create(
     payload: CreateAdminDto,
-    _authUser: IUserRef,
+    authUser: IUserRef,
   ): Promise<AdminResponse> {
+    requireAdmin(authUser);
     return this.repository.transaction(async tx => {
       const user = await this.userService.createAccount(
         {
@@ -41,6 +36,7 @@ export class AdminService extends AbstractService implements IAdminService {
           role: USER_ROLE.ADMIN,
         },
         tx,
+        authUser,
       );
       return this.repository.create(
         {
@@ -56,8 +52,8 @@ export class AdminService extends AbstractService implements IAdminService {
       );
     });
   }
-  async findOne(id: string, _authUser: IUserRef) {
-    this.validateId(id);
+  async findOne(id: string, authUser: IUserRef) {
+    requireAdmin(authUser);
     const result = await this.repository.findFirst({
       where: { id, isDeleted: false },
       include: {
@@ -75,7 +71,8 @@ export class AdminService extends AbstractService implements IAdminService {
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
     return result;
   }
-  async findAll(query: ListAdminsQuery, _authUser: IUserRef) {
+  async findAll(query: ListAdminsQuery, authUser: IUserRef) {
+    requireAdmin(authUser);
     const pagination = this.calculatePagination(query);
     const where = new AdminQueryBuilder()
       .addSearch(query.search ?? query.searchTerm)
@@ -117,9 +114,9 @@ export class AdminService extends AbstractService implements IAdminService {
   async update(
     id: string,
     payload: UpdateAdminDto,
-    _authUser: IUserRef,
+    authUser: IUserRef,
   ): Promise<AdminResponse> {
-    this.validateId(id);
+    requireAdmin(authUser);
     const admin = await this.repository.findFirst({
       where: { id, isDeleted: false },
       select: { id: true },
@@ -132,7 +129,7 @@ export class AdminService extends AbstractService implements IAdminService {
     });
   }
   async softDelete(id: string, authUser: IUserRef): Promise<AdminResponse> {
-    this.validateId(id);
+    requireAdmin(authUser);
     const admin = await this.repository.findFirst({
       where: { id, isDeleted: false },
       select: { id: true },

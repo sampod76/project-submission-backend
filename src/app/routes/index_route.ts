@@ -1,10 +1,13 @@
 import express from "express";
-import { adminRoutes } from "../modules/admin/admin.container";
-import { authenticationRoutes } from "../modules/authentication/authentication.container";
-import { dashboardRoutes } from "../modules/dashboard/dashboard.container";
-import { doctorRoutes } from "../modules/doctor/doctor.container";
-import { patientRoutes } from "../modules/patient/patient.container";
-import { userRoutes } from "../modules/user/user.container";
+import {
+  submissionRoutes,
+  mentorRoutes,
+  studentRoutes,
+  auditLogRoutes,
+  adminRoutes,
+  authenticationRoutes,
+  userRoutes,
+} from "./routes.container";
 
 const router = express.Router();
 
@@ -14,10 +17,11 @@ type ModuleRoute = {
 };
 
 const moduleRoutes: ModuleRoute[] = [
-  { path: "/dashboard", route: dashboardRoutes.router },
+  { path: "/submissions", route: submissionRoutes.router },
+  { path: "/mentors", route: mentorRoutes.router },
+  { path: "/students", route: studentRoutes.router },
+  { path: "/audit-logs", route: auditLogRoutes.router },
   { path: "/admins", route: adminRoutes.router },
-  { path: "/doctors", route: doctorRoutes.router },
-  { path: "/patients", route: patientRoutes.router },
   {
     path: "/auth",
     route: authenticationRoutes.router,

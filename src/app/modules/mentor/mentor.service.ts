@@ -1,7 +1,7 @@
+import { requireAdmin } from "../../share/authorization";
 import type { IMentorService } from "./mentor.interface";
 import { AbstractService } from "../../core/abstract/AbstractService";
 import { orderBy } from "../../share/prisma/query-options";
-import { mentorRepository } from "./mentor.repository";
 import type { IMentorRepository } from "./mentor.interface";
 import { MENTOR_SELECT } from "./mentor.constant";
 import type { ListMentorsQuery, CreateMentorDto } from "./mentor.validation";
@@ -9,18 +9,16 @@ import { MentorQueryBuilder } from "./builders/MentorQueryBuilder";
 import type { IUserService } from "../user/user.interface";
 import type { IUserRef } from "../../interfaces/user.ref";
 import { ApiError } from "../../errors/ApiError";
-import { adminRepository } from "../admin/admin.repository";
 import type { IAdminRepository } from "../admin/admin.interface";
 export class MentorService extends AbstractService implements IMentorService {
   constructor(
     private readonly users: IUserService,
-    private readonly repository: IMentorRepository = mentorRepository,
-    private readonly admins: IAdminRepository = adminRepository,
+    private readonly repository: IMentorRepository,
+    private readonly admins: IAdminRepository,
   ) {
     super();
   }
   async create(dto: CreateMentorDto, authUser: IUserRef) {
-    if (authUser.role !== "ADMIN") throw new ApiError(403, "Forbidden access");
     return this.repository.transaction(async tx => {
       const admin = await this.admins.findFirst(
         {
@@ -38,6 +36,7 @@ export class MentorService extends AbstractService implements IMentorService {
       const user = await this.users.createAccount(
         { email: dto.email, password: dto.password, role: "MENTOR" },
         tx,
+        authUser,
       );
       return this.repository.create(
         {
@@ -56,7 +55,8 @@ export class MentorService extends AbstractService implements IMentorService {
       );
     });
   }
-  async findAll(query: ListMentorsQuery) {
+  async findAll(query: ListMentorsQuery, authUser: IUserRef) {
+    requireAdmin(authUser);
     const pagination = this.calculatePagination(query);
     const where = new MentorQueryBuilder()
       .addSearch(query.searchTerm ?? query.search)

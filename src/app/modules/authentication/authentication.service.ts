@@ -1,3 +1,7 @@
+import type { IUserService } from "../user/user.interface";
+import type { IStudentRepository } from "../student/student.interface";
+import { USER_PROFILE_SELECT } from "../user/user.select";
+import type { RegisterDto } from "./authentication.validation";
 import bcrypt from "bcryptjs";
 import httpStatus from "http-status";
 import type { JwtPayload } from "jsonwebtoken";
@@ -22,7 +26,6 @@ import type {
   IAuthenticationRepository,
   IAuthenticationService,
 } from "./authentication.interface";
-import { authenticationRepository } from "./authentication.repository";
 import { ChangePasswordDto, LoginDto } from "./authentication.validation";
 export type { AuthResult } from "./authentication.interface";
 
@@ -44,13 +47,53 @@ export class AuthenticationService
   implements IAuthenticationService
 {
   constructor(
-    private readonly repository: IAuthenticationRepository = authenticationRepository,
+    private readonly repository: IAuthenticationRepository,
+    private readonly accountService: IUserService,
+    private readonly students: IStudentRepository,
   ) {
     super();
   }
+  async register(dto: RegisterDto) {
+    return this.students.transaction(async tx => {
+      const { firstName, lastName, phone, gender, ...account } = dto;
+      const user = await this.accountService.createAccount(
+        { ...account, role: "STUDENT" },
+        tx,
+      );
+      const student = await this.students.create(
+        {
+          data: { userId: user.id, firstName, lastName, phone, gender },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            gender: true,
+          },
+        },
+        tx,
+      );
+      return { ...user, student };
+    });
+  }
+  async session(authUser: IUserRef) {
+    const user = await this.repository.findFirst({
+      where: { id: authUser.userId, isDeleted: false, isActive: true },
+      select: { id: true, email: true, role: true, isActive: true },
+    });
+    if (!user) throw new ApiError(401, "User not found");
+    return user;
+  }
   private authResult(user: AuthRefreshAccount): AuthResult {
-    const name =
-      (user.role === "ADMIN" ? user.admin?.name : user.doctor?.name) ?? "N/A";
+    const profile =
+      user.role === "ADMIN"
+        ? user.admin
+        : user.role === "MENTOR"
+          ? user.mentor
+          : user.student;
+    const name = profile
+      ? [profile.firstName, profile.lastName].join(" ")
+      : "N/A";
     return {
       ...issueJwtTokens({ userId: user.id, role: user.role }),
       user: { id: user.id, email: user.email, role: user.role, name },
@@ -58,18 +101,25 @@ export class AuthenticationService
   }
   async login(dto: LoginDto): Promise<AuthResult> {
     const user = await this.repository.findFirst({
-      where: { email: dto.email.trim().toLowerCase(), isDeleted: false },
+      where: { email: dto.email.toLowerCase(), isDeleted: false },
       include: {
-        admin: { select: { name: true } },
-        doctor: { select: { name: true } },
+        admin: { select: { firstName: true, lastName: true } },
+        mentor: { select: { firstName: true, lastName: true } },
+        student: { select: { firstName: true, lastName: true } },
       },
     });
-    if (!user || !user.isActive)
-      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "Not found user");
+
+    if (!user.isActive)
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Inactive user");
 
     const passwordMatches = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatches)
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+    await this.repository.update({
+      where: { id: user.id, isDeleted: false, isActive: true },
+      data: { lastLoginAt: new Date() },
+    });
     return this.authResult(user);
   }
   async refresh(refreshToken: string): Promise<AuthResult> {
@@ -86,8 +136,9 @@ export class AuthenticationService
     const user = await this.repository.findFirst({
       where: { id: decoded.userId, isDeleted: false },
       include: {
-        admin: { select: { name: true } },
-        doctor: { select: { name: true } },
+        admin: { select: { firstName: true, lastName: true } },
+        mentor: { select: { firstName: true, lastName: true } },
+        student: { select: { firstName: true, lastName: true } },
       },
       omit: { password: true },
     });
@@ -98,8 +149,7 @@ export class AuthenticationService
   async profile(authUser: IUserRef) {
     const user = await this.repository.findFirst({
       where: { id: authUser.userId, isDeleted: false },
-      include: { admin: true, doctor: true },
-      omit: { password: true },
+      select: USER_PROFILE_SELECT,
     });
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     return user;
@@ -108,7 +158,9 @@ export class AuthenticationService
     userId: string,
     dto: ChangePasswordDto,
   ): Promise<ChangePasswordResponse> {
-    const user = await this.repository.findFirst({ where: { id: userId } });
+    const user = await this.repository.findFirst({
+      where: { id: userId, isDeleted: false, isActive: true },
+    });
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     const currentPasswordMatches = await bcrypt.compare(
       dto.currentPassword,
@@ -121,9 +173,16 @@ export class AuthenticationService
       );
     const password = await bcrypt.hash(dto.newPassword, env.BCRYPT_SALT_ROUNDS);
     await this.repository.update({
-      where: { id: user.id },
+      where: {
+        id: user.id,
+        isDeleted: false,
+        isActive: true,
+        password: user.password,
+      },
       data: { password },
     });
-    return { message: "Password changed. Please log in again." };
+    return {
+      message: "Password changed.",
+    };
   }
 }

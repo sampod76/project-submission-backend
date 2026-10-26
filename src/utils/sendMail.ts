@@ -46,13 +46,7 @@ const createTransporter = () => {
 };
 
 const buildHtml = (data: IMailData): string => {
-  const {
-    title,
-    body_text,
-    dictionary,
-    button,
-    footer_text,
-  } = data;
+  const { title, body_text, dictionary, button, footer_text } = data;
 
   return `
     <!DOCTYPE html>

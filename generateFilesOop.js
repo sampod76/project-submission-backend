@@ -50,12 +50,13 @@ function templates({ camel: c, pascal: p, upper: u, kebab: k }) {
     constant: `export const ${u}_SEARCHABLE_FIELDS = ["title"] as const;
 export const ${u}_SORTABLE_FIELDS = ["id", "title", "createdAt", "updatedAt"] as const;
 `,
-    container: `import { ${p}Controller } from "./${k}.controller";
-import { ${p}Routes } from "./${k}.route";
+    container: `import { prisma } from "../../share/prisma/prisma";
+import { ${p}Controller } from "./${k}.controller";
+import { ${p}Repository } from "./${k}.repository";
 import { ${p}Service } from "./${k}.service";
-export const ${c}Service = new ${p}Service();
+export const ${c}Repository = new ${p}Repository(prisma);
+export const ${c}Service = new ${p}Service(${c}Repository);
 export const ${c}Controller = new ${p}Controller(${c}Service);
-export const ${c}Routes = new ${p}Routes(${c}Controller);
 `,
     prisma: `model ${p} {
   id String @id @default(uuid()) @db.Uuid
@@ -123,7 +124,8 @@ export class ${p}Controller extends AbstractController {
     super();
   }
   create = this.catchAsync(async (req: Request, res: ValidatedResponse<typeof create${p}ZodSchema>) => {
-    const data = await this.service.create(res.body);
+    const { body } = res.locals.validated;
+    const data = await this.service.create(body);
     this.sendResponse<${p}Response>(res, {
       statusCode: httpStatus.CREATED,
       message: "${p} created",
@@ -131,7 +133,7 @@ export class ${p}Controller extends AbstractController {
     });
   });
   list = this.catchAsync(async (req: Request, res: ValidatedResponse<typeof list${p}sZodSchema>) => {
-    const { query } = res;
+    const { query } = res.locals.validated;
     const result = await this.service.findAll(query);
     this.sendResponse<${p}ListResponse[]>(res, {
       statusCode: httpStatus.OK,
@@ -140,11 +142,13 @@ export class ${p}Controller extends AbstractController {
     });
   });
   getById = this.catchAsync(async (req: Request, res: ValidatedResponse<typeof get${p}ZodSchema>) => {
-    const data = await this.service.findOne(res.params.id);
+    const { params } = res.locals.validated;
+    const data = await this.service.findOne(params.id);
     this.sendResponse<${p}Response>(res, { statusCode: httpStatus.OK, data });
   });
   update = this.catchAsync(async (req: Request, res: ValidatedResponse<typeof update${p}ZodSchema>) => {
-    const data = await this.service.update(res.params.id, res.body);
+    const { params, body } = res.locals.validated;
+    const data = await this.service.update(params.id, body);
     this.sendResponse<${p}Response>(res, {
       statusCode: httpStatus.OK,
       message: "${p} updated",
@@ -152,7 +156,8 @@ export class ${p}Controller extends AbstractController {
     });
   });
   remove = this.catchAsync(async (req: Request, res: ValidatedResponse<typeof get${p}ZodSchema>) => {
-    const data = await this.service.softDelete(res.params.id);
+    const { params } = res.locals.validated;
+    const data = await this.service.softDelete(params.id);
     this.sendResponse<${p}Response>(res, {
       statusCode: httpStatus.OK,
       message: "${p} deleted",
@@ -161,7 +166,8 @@ export class ${p}Controller extends AbstractController {
   });
 }
 `,
-    route: `import { AbstractRoute } from "../../core/abstract/AbstractRoute";
+    route: `import type { AuthMiddleware } from "../../middlewares/authMiddleware";
+import { AbstractRoute } from "../../core/abstract/AbstractRoute";
 import { ${p}Controller } from "./${k}.controller";
 import {
   create${p}ZodSchema,
@@ -170,8 +176,8 @@ import {
   update${p}ZodSchema,
 } from "./${k}.validation";
 export class ${p}Routes extends AbstractRoute {
-  constructor(private readonly controller: ${p}Controller) {
-    super();
+  constructor(private readonly controller: ${p}Controller, authMiddleware: AuthMiddleware) {
+    super(authMiddleware);
     this.init();
   }
   protected init(): void {
@@ -232,18 +238,18 @@ export class ${p}QueryBuilder {
   build(): Prisma.${p}WhereInput { return this.where; }
 }
 `,
-    repository: `import type { Prisma } from "@prisma/client";
-import { prisma } from "../../share/prisma/prisma";
+    repository: `import type { Prisma, PrismaClient } from "@prisma/client";
 import type { PrismaOrTx, PrismaTransactionClient } from "../../share/prisma/transaction";
 import type { I${p}Repository } from "./${k}.interface";
 export class ${p}Repository implements I${p}Repository {
-  create<T extends Prisma.${p}CreateArgs>(args: Prisma.SelectSubset<T, Prisma.${p}CreateArgs>, tx?: PrismaOrTx) { return (tx ?? prisma).${c}.create(args); }
-  findMany<T extends Prisma.${p}FindManyArgs>(args: Prisma.SelectSubset<T, Prisma.${p}FindManyArgs>, tx?: PrismaOrTx) { return (tx ?? prisma).${c}.findMany(args); }
-  findFirst<T extends Prisma.${p}FindFirstArgs>(args: Prisma.SelectSubset<T, Prisma.${p}FindFirstArgs>, tx?: PrismaOrTx) { return (tx ?? prisma).${c}.findFirst(args); }
-  update<T extends Prisma.${p}UpdateArgs>(args: Prisma.SelectSubset<T, Prisma.${p}UpdateArgs>, tx?: PrismaOrTx) { return (tx ?? prisma).${c}.update(args); }
-  count<T extends Prisma.${p}CountArgs>(args: Prisma.Subset<T, Prisma.${p}CountArgs>, tx?: PrismaOrTx): ReturnType<typeof prisma.${c}.count<T>> { return (tx ?? prisma).${c}.count(args); }
+  constructor(private readonly prisma: PrismaClient) {}
+  create<T extends Prisma.${p}CreateArgs>(args: Prisma.SelectSubset<T, Prisma.${p}CreateArgs>, tx?: PrismaOrTx) { return (tx ?? this.prisma).${c}.create(args); }
+  findMany<T extends Prisma.${p}FindManyArgs>(args: Prisma.SelectSubset<T, Prisma.${p}FindManyArgs>, tx?: PrismaOrTx) { return (tx ?? this.prisma).${c}.findMany(args); }
+  findFirst<T extends Prisma.${p}FindFirstArgs>(args: Prisma.SelectSubset<T, Prisma.${p}FindFirstArgs>, tx?: PrismaOrTx) { return (tx ?? this.prisma).${c}.findFirst(args); }
+  update<T extends Prisma.${p}UpdateArgs>(args: Prisma.SelectSubset<T, Prisma.${p}UpdateArgs>, tx?: PrismaOrTx) { return (tx ?? this.prisma).${c}.update(args); }
+  count<T extends Prisma.${p}CountArgs>(args: Prisma.Subset<T, Prisma.${p}CountArgs>, tx?: PrismaOrTx): ReturnType<typeof this.prisma.${c}.count<T>> { return (tx ?? this.prisma).${c}.count(args); }
   transaction<T>(work: (tx: PrismaTransactionClient) => Promise<T>): Promise<T> {
-    return prisma.$transaction(work, { isolationLevel: "RepeatableRead" });
+    return this.prisma.$transaction(work, { isolationLevel: "RepeatableRead" });
   }
 }
 `,
@@ -278,11 +284,10 @@ import type { PaginatedResult } from "../../interfaces/response";
 import { AbstractService } from "../../core/abstract/AbstractService";
 import { ApiError } from "../../errors/ApiError";
 import { isValidId } from "../../../global/schema/global.schema";
-import { ${p}Repository } from "./${k}.repository";
 import type { I${p}Service, I${p}Repository, ${p}Response, ${p}ListResponse } from "./${k}.interface";
 import type { Create${p}Dto, Update${p}Dto, List${p}sQuery } from "./${k}.validation";
 export class ${p}Service extends AbstractService implements I${p}Service {
-  constructor(private readonly repository: I${p}Repository = new ${p}Repository()) { super(); }
+  constructor(private readonly repository: I${p}Repository) { super(); }
   async create(payload: Create${p}Dto): Promise<${p}Response> { return await this.repository.create({ data: payload }); }
   async findOne(id: string): Promise<${p}Response> {
     const hasValidId = isValidId(id);
@@ -386,12 +391,12 @@ async function generateModule(name) {
   console.log(
     "Scaffold fields: title, isDeleted, deletedAt, and timestamps. Customize the Prisma schema and validation for your module. Routes initially allow ADMIN only.",
   );
-  console.log("Register manually in src/app/routes/index_route.ts:");
+  console.log("Wire routes in src/app/routes/routes.container.ts:");
   console.log(
-    `import { ${names.camel}Routes } from "../modules/${names.kebab}/${names.kebab}.container";`,
+    `import { ${names.camel}Controller } from "../modules/${names.kebab}/${names.kebab}.container";\nimport { ${names.pascal}Routes } from "../modules/${names.kebab}/${names.kebab}.route";\nexport const ${names.camel}Routes = new ${names.pascal}Routes(${names.camel}Controller, authMiddleware);`,
   );
   console.log(
-    `Add to moduleRoutes: { path: "/${names.kebab}s", route: ${names.camel}Routes.router },`,
+    `Import ${names.camel}Routes from "./routes.container" in src/app/routes/index_route.ts and add to moduleRoutes: { path: "/${names.kebab}s", route: ${names.camel}Routes.router },`,
   );
 }
 

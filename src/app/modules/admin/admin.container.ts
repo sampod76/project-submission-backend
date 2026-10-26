@@ -1,8 +1,9 @@
+import { prisma } from "../../share/prisma/prisma";
 import { userService } from "../user/user.container";
-import { AdminController } from "./admin.controller";
-import { adminRepository } from "./admin.repository";
-import { AdminRoutes } from "./admin.route";
+import { AdminRepository } from "./admin.repository";
 import { AdminService } from "./admin.service";
+import { AdminController } from "./admin.controller";
+
+export const adminRepository = new AdminRepository(prisma);
 export const adminService = new AdminService(userService, adminRepository);
 export const adminController = new AdminController(adminService);
-export const adminRoutes = new AdminRoutes(adminController);

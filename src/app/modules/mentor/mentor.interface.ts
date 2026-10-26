@@ -10,5 +10,8 @@ import type { PaginatedResult } from "../../interfaces/response";
 import type { CreateMentorDto, ListMentorsQuery } from "./mentor.validation";
 export interface IMentorService {
   create(dto: CreateMentorDto, authUser: IUserRef): Promise<MentorResponse>;
-  findAll(query: ListMentorsQuery): Promise<PaginatedResult<MentorResponse>>;
+  findAll(
+    query: ListMentorsQuery,
+    authUser: IUserRef,
+  ): Promise<PaginatedResult<MentorResponse>>;
 }

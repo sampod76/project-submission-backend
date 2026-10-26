@@ -1,6 +1,11 @@
+import {
+  authorizeAccount,
+  requireAdmin,
+  requireManagement,
+} from "../../share/authorization";
 import { USER_PROFILE_SELECT } from "./user.select";
 import type { UpdateProfileDto } from "./user.validation";
-import { auditLogService } from "../audit-log/audit-log.service";
+import type { IAuditLogService } from "../audit-log/audit-log.interface";
 import { orderBy } from "../../share/prisma/query-options";
 import { UserQueryBuilder } from "./builders/UserQueryBuilder";
 import type { Prisma } from "@prisma/client";
@@ -8,7 +13,7 @@ import bcrypt from "bcryptjs";
 import httpStatus from "http-status";
 import { USER_ROLE } from "../../../global/enums/users";
 import { isValidId } from "../../../global/schema/global.schema";
-import { authCache } from "../../../helper/authCache";
+import type { authCache } from "../../../helper/authCache";
 import { env } from "../../config/env";
 import { AbstractService } from "../../core/abstract/AbstractService";
 import { ApiError } from "../../errors/ApiError";
@@ -18,24 +23,34 @@ import type { UserResponse } from "./user.interface";
 
 import type { PrismaOrTx } from "../../share/prisma/transaction";
 import type { IUserRepository, IUserService } from "./user.interface";
-import { userRepository } from "./user.repository";
 import {
   CreateAccountDto,
   createAccountZodSchema,
   ListUsersQuery,
   UpdateUserDto,
+  updateUserZodSchema,
+  profileBodySchema,
 } from "./user.validation";
 
 export class UserService extends AbstractService implements IUserService {
-  constructor(private readonly repository: IUserRepository = userRepository) {
+  constructor(
+    private readonly repository: IUserRepository,
+    private readonly audits: IAuditLogService,
+    private readonly cache: typeof authCache,
+  ) {
     super();
   }
 
   async createAccount(
     payload: CreateAccountDto,
     tx?: PrismaOrTx,
+    authUser?: IUserRef,
   ): Promise<UserResponse> {
+    // Shared account creation also has direct callers without HTTP middleware.
     const account = createAccountZodSchema.parse(payload);
+    if (account.role !== USER_ROLE.STUDENT) {
+      requireAdmin(authUser);
+    }
     const email = account.email.trim().toLowerCase();
     const existingUser = await this.repository.findFirst(
       { where: { email } },
@@ -54,31 +69,43 @@ export class UserService extends AbstractService implements IUserService {
       tx,
     );
   }
-  async findOne(id: string): Promise<UserResponse> {
+  async findOne(id: string, authUser: IUserRef): Promise<UserResponse> {
+    requireManagement(authUser);
     this.validateId(id);
     const user = await this.repository.findFirst({
       where: { id, isDeleted: false },
       omit: { password: true },
     });
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    authorizeAccount(authUser, user.role);
     return user;
   }
   private validateId(id: string): void {
+    // findOne and restore are also used by direct service callers.
     const hasValidId = isValidId(id);
     if (!hasValidId)
       throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user id");
   }
   async findAll(
     filters: ListUsersQuery,
+    authUser: IUserRef,
     paginationOptions: IPaginationOptions = filters,
-    _authUser?: IUserRef,
   ) {
+    requireManagement(authUser);
     const pagination = this.calculatePagination(paginationOptions);
-    const where = new UserQueryBuilder()
+    const requestedWhere = new UserQueryBuilder()
       .addSearch(filters.search ?? filters.searchTerm)
       .addFilters(filters)
       .addDateRange(filters.fromDate, filters.toDate)
       .build();
+    const where: Prisma.UserWhereInput = {
+      AND: [
+        requestedWhere,
+        ...(authUser.role === USER_ROLE.MENTOR
+          ? [{ role: USER_ROLE.STUDENT }]
+          : []),
+      ],
+    };
     const { data, total } = await this.repository.transaction(async tx => {
       const [data, total] = await Promise.all([
         this.repository.findMany(
@@ -109,14 +136,32 @@ export class UserService extends AbstractService implements IUserService {
       meta: { page: pagination.page, limit: pagination.limit, total },
     };
   }
-  async findByEmail(email: string): Promise<UserResponse | null> {
-    return this.repository.findFirst({
+  async findByEmail(
+    email: string,
+    authUser: IUserRef,
+  ): Promise<UserResponse | null> {
+    requireManagement(authUser);
+    const user = await this.repository.findFirst({
       where: { email: email.trim().toLowerCase() },
       omit: { password: true },
     });
+    if (user) authorizeAccount(authUser, user.role);
+    return user;
   }
-  async update(id: string, payload: UpdateUserDto): Promise<UserResponse> {
-    await this.findOne(id);
+  async update(
+    id: string,
+    payload: UpdateUserDto,
+    authUser: IUserRef,
+  ): Promise<UserResponse> {
+    const target = await this.findOne(id, authUser);
+    if (payload.role !== undefined) requireAdmin(authUser);
+    // Direct service callers also supply update payloads without middleware.
+    payload = updateUserZodSchema.shape.body.parse(payload);
+    if (
+      id.toLowerCase() === authUser.userId.toLowerCase() &&
+      payload.isActive === false
+    )
+      throw new ApiError(409, "You cannot deactivate your own account");
     const data: Prisma.UserUpdateInput = {
       ...(payload.email !== undefined ? { email: payload.email } : {}),
       ...(payload.role !== undefined ? { role: payload.role } : {}),
@@ -131,35 +176,37 @@ export class UserService extends AbstractService implements IUserService {
         : {}),
     };
     const updated = await this.repository.update({
-      where: { id },
+      where: { id, role: target.role, isDeleted: false },
       data,
       omit: { password: true },
     });
-    authCache.invalidateAuthUserCache(updated.id);
+    this.cache.invalidateAuthUserCache(updated.id);
     return updated;
   }
-  async softDelete(id: string): Promise<UserResponse> {
-    await this.findOne(id);
+  async softDelete(id: string, authUser: IUserRef): Promise<UserResponse> {
+    const target = await this.findOne(id, authUser);
     const user = await this.repository.update({
-      where: { id },
+      where: { id, role: target.role, isDeleted: false },
       data: { isDeleted: true, deletedAt: new Date() },
       omit: { password: true },
     });
-    authCache.invalidateAuthUserCache(user.id);
+    this.cache.invalidateAuthUserCache(user.id);
     return user;
   }
-  async restore(id: string): Promise<UserResponse> {
+  async restore(id: string, authUser: IUserRef): Promise<UserResponse> {
+    requireManagement(authUser);
     this.validateId(id);
     const existingUser = await this.repository.findFirst({ where: { id } });
 
     if (!existingUser)
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    authorizeAccount(authUser, existingUser.role);
     const user = await this.repository.update({
-      where: { id },
+      where: { id, role: existingUser.role },
       data: { isDeleted: false, deletedAt: null },
       omit: { password: true },
     });
-    authCache.invalidateAuthUserCache(user.id);
+    this.cache.invalidateAuthUserCache(user.id);
     return user;
   }
   async ownProfile(authUser: IUserRef) {
@@ -176,6 +223,8 @@ export class UserService extends AbstractService implements IUserService {
     return user;
   }
   async updateProfile(authUser: IUserRef, payload: UpdateProfileDto) {
+    // Preserve strict field validation for direct profile updates.
+    payload = profileBodySchema.parse(payload);
     const profile =
       authUser.role === "ADMIN"
         ? "admin"
@@ -200,29 +249,28 @@ export class UserService extends AbstractService implements IUserService {
     isActive: boolean,
     authUser: IUserRef,
   ): Promise<UserResponse> {
-    this.validateId(id);
-    if (authUser.role !== USER_ROLE.ADMIN)
-      throw new ApiError(403, "Forbidden access");
-    if (id.toLowerCase() === authUser.userId.toLowerCase() && !isActive)
-      throw new ApiError(409, "You cannot deactivate your own account");
+    requireManagement(authUser);
     const user = await this.repository.transaction(async tx => {
       const existing = await this.repository.findFirst(
         {
           where: { id, isDeleted: false },
-          select: { id: true, isActive: true },
+          select: { id: true, role: true, isActive: true },
         },
         tx,
       );
       if (!existing) throw new ApiError(404, "User not found");
+      authorizeAccount(authUser, existing.role);
+      if (id.toLowerCase() === authUser.userId.toLowerCase() && !isActive)
+        throw new ApiError(409, "You cannot deactivate your own account");
       const result = await this.repository.update(
         {
-          where: { id, isDeleted: false },
+          where: { id, role: existing.role, isDeleted: false },
           data: { isActive },
           omit: { password: true },
         },
         tx,
       );
-      await auditLogService.record(
+      await this.audits.record(
         {
           actorUserId: authUser.userId,
           action: "USER_STATUS_CHANGED",
@@ -235,10 +283,14 @@ export class UserService extends AbstractService implements IUserService {
       );
       return result;
     });
-    authCache.invalidateAuthUserCache(id);
+    this.cache.invalidateAuthUserCache(id);
     return user;
   }
-  async findByRole(role: USER_ROLE): Promise<UserResponse[]> {
+  async findByRole(
+    role: USER_ROLE,
+    authUser: IUserRef,
+  ): Promise<UserResponse[]> {
+    authorizeAccount(authUser, role);
     return this.repository.findMany({
       where: { role, isDeleted: false },
       omit: { password: true },

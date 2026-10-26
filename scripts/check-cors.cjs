@@ -6,7 +6,11 @@ async function main() {
   if (!baseUrl)
     throw new Error("Usage: node scripts/check-cors.cjs <API base URL>");
 
-  const origin = "https://doctor-tracker-ai.iblossomlearn.org";
+  const origin = process.argv[3] || process.env.WEB_ORIGIN;
+  if (!origin)
+    throw new Error(
+      "Provide the frontend origin as the second argument or WEB_ORIGIN",
+    );
   const response = await fetch(new URL("/api/v1/auth/login", baseUrl), {
     method: "OPTIONS",
     redirect: "manual",

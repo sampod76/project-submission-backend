@@ -7,8 +7,6 @@ const normalizeOrigin = (origin: string): string =>
 const allowedOrigins = new Set([
   ...env.CORS_ORIGIN.split(",").map(normalizeOrigin).filter(Boolean),
 
-  "https://doctor-tracker-ai.iblossomlearn.org",
-  "https://doctor-tracker-ai.netlify.app",
   "http://localhost:3000",
 ]);
 

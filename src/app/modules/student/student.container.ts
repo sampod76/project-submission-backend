@@ -1,7 +1,8 @@
+import { prisma } from "../../share/prisma/prisma";
+import { StudentRepository } from "./student.repository";
 import { StudentService } from "./student.service";
-import { studentRepository } from "./student.repository";
 import { StudentController } from "./student.controller";
-import { StudentRoutes } from "./student.route";
+
+export const studentRepository = new StudentRepository(prisma);
 export const studentService = new StudentService(studentRepository);
 export const studentController = new StudentController(studentService);
-export const studentRoutes = new StudentRoutes(studentController);

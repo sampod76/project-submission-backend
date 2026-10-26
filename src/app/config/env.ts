@@ -33,6 +33,10 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(200),
 
+  REGISTRATION_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+  SUBMISSION_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
   SMTP_USER: z.string().optional(),

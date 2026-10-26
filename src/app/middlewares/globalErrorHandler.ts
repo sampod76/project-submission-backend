@@ -48,16 +48,14 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     message =
       env.NODE_ENV === "production"
         ? "Something went wrong. Please try again later."
-        : error.message;
+        : "Unexpected server error";
     errorCode = "INTERNAL_SERVER_ERROR";
-    errorMessage =
-      env.NODE_ENV === "production"
-        ? []
-        : [{ path: "", message: error.message }];
+    errorMessage = [];
   }
 
   if (error instanceof ApiError)
     errorLogger.error({
+      message: error.developerMessage || error.message,
       type: "ApiError",
       statusCode: error.statusCode,
       userMessage: error.userMessage,
@@ -84,13 +82,6 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     message,
     ...(errorCode && { errorCode }),
     errorMessage,
-    ...(env.NODE_ENV !== "production" && {
-      stack: error instanceof Error ? error.stack : undefined,
-      ...(error instanceof ApiError && {
-        developerMessage: error.developerMessage,
-        details: error.details,
-      }),
-    }),
   });
 };
 

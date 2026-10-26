@@ -1,23 +1,29 @@
-enum UserRole {
+enum Role {
   ADMIN
-  DOCTOR
+  MENTOR
+  STUDENT
+
+  @@schema("auth")
 }
 
 model User {
-  id             String    @id @default(uuid()) @db.Uuid
-  email          String    @unique
-  password       String    @db.VarChar(128)
-  role           UserRole
-  isActive       Boolean   @default(true) @map("is_active")
-  isDeleted      Boolean   @default(false) @map("is_deleted")
-  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(3)
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  admin          Admin?
-  doctor         Doctor?   @relation("DoctorAccount")
-  createdDoctors Doctor[]  @relation("DoctorCreator")
+  id       String @id @default(uuid()) @db.Uuid
+  email    String @unique() @db.VarChar(255)
+  password String @db.VarChar(255)
 
-  @@index([role])
-  @@index([isDeleted, createdAt(sort: Desc)])
+  role              Role               @default(STUDENT)
+  isActive          Boolean            @default(true) @map("is_active")
+  lastLoginAt       DateTime?          @map("last_login_at") @db.Timestamptz(0)
+  isDeleted         Boolean            @default(false) @map("is_deleted")
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(0)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(0)
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(0)
+  admin             Admin?
+  mentor            Mentor?
+  student           Student?
+  submissionReviews SubmissionReview[]
+  auditLogs         AuditLog[]
+
   @@map("users")
+  @@schema("auth")
 }

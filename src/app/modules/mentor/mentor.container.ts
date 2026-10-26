@@ -1,8 +1,14 @@
+import { prisma } from "../../share/prisma/prisma";
 import { userService } from "../user/user.container";
+import { adminRepository } from "../admin/admin.container";
+import { MentorRepository } from "./mentor.repository";
 import { MentorService } from "./mentor.service";
-import { mentorRepository } from "./mentor.repository";
 import { MentorController } from "./mentor.controller";
-import { MentorRoutes } from "./mentor.route";
-export const mentorService = new MentorService(userService, mentorRepository);
+
+export const mentorRepository = new MentorRepository(prisma);
+export const mentorService = new MentorService(
+  userService,
+  mentorRepository,
+  adminRepository,
+);
 export const mentorController = new MentorController(mentorService);
-export const mentorRoutes = new MentorRoutes(mentorController);

@@ -1,0 +1,28 @@
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVISION_REQUIRED
+
+  @@schema("submissions")
+}
+
+model Submission {
+  id                String             @id @default(uuid()) @db.Uuid
+  studentId         String             @map("student_id") @db.Uuid
+  student           Student            @relation(fields: [studentId], references: [id])
+  projectName       String             @map("project_name") @db.VarChar(200)
+  repoUrl           String             @map("repo_url")
+  repoFullName      String             @map("repo_full_name")
+  liveUrl           String             @map("live_url")
+  description       String
+  status            SubmissionStatus   @default(PENDING)
+  isDeleted         Boolean            @default(false) @map("is_deleted")
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(0)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(0)
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(0)
+  submissionReviews SubmissionReview[]
+
+  @@map("submissions")
+  @@schema("submissions")
+}

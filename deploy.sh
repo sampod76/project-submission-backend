@@ -5,7 +5,7 @@ log() {
   echo -e "\n\033[1;32m**$1**\033[0m"
 }
 
-APP_DIR="$HOME/apps/doctor-tracking-dashboard"
+APP_DIR="$HOME/apps/project-submission-backend"
 COMPOSE_FILE="docker-compose.pro.yml"
 
 cd "$APP_DIR"

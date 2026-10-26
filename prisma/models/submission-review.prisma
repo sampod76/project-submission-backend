@@ -1,0 +1,17 @@
+model SubmissionReview {
+  id             String           @id @default(uuid()) @db.Uuid
+  submissionId   String           @map("submission_id") @db.Uuid
+  submission     Submission       @relation(fields: [submissionId], references: [id])
+  reviewerUserId String           @map("reviewer_user_id") @db.Uuid
+  reviewer       User             @relation(fields: [reviewerUserId], references: [id])
+  previousStatus SubmissionStatus @map("previous_status")
+  status         SubmissionStatus
+  feedback       String?
+  isDeleted      Boolean          @default(false) @map("is_deleted")
+  deletedAt      DateTime?        @map("deleted_at") @db.Timestamptz(0)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(0)
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(0)
+
+  @@map("submission_reviews")
+  @@schema("submissions")
+}

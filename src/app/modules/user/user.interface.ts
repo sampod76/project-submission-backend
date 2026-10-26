@@ -39,18 +39,23 @@ export interface IUserService {
   createAccount(
     payload: CreateAccountDto,
     tx?: PrismaOrTx,
+    authUser?: IUserRef,
   ): Promise<UserResponse>;
-  findOne(id: string): Promise<UserResponse>;
+  findOne(id: string, authUser: IUserRef): Promise<UserResponse>;
   findAll(
     filters: ListUsersQuery,
+    authUser: IUserRef,
     pagination?: IPaginationOptions,
-    authUser?: IUserRef,
   ): Promise<PaginatedResult<UserListResponse>>;
-  findByEmail(email: string): Promise<UserResponse | null>;
-  update(id: string, payload: UpdateUserDto): Promise<UserResponse>;
-  softDelete(id: string): Promise<UserResponse>;
-  restore(id: string): Promise<UserResponse>;
-  findByRole(role: USER_ROLE): Promise<UserResponse[]>;
+  findByEmail(email: string, authUser: IUserRef): Promise<UserResponse | null>;
+  update(
+    id: string,
+    payload: UpdateUserDto,
+    authUser: IUserRef,
+  ): Promise<UserResponse>;
+  softDelete(id: string, authUser: IUserRef): Promise<UserResponse>;
+  restore(id: string, authUser: IUserRef): Promise<UserResponse>;
+  findByRole(role: USER_ROLE, authUser: IUserRef): Promise<UserResponse[]>;
 }
 
 export interface IUserRepository {
