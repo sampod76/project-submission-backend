@@ -6,6 +6,7 @@ A REST API for a role-based project submission and review platform. Students can
 
 - [Production Backend API](https://api-project-submission.iblossomlearn.org/api/v1)
 - [Backend Health Check](https://api-project-submission.iblossomlearn.org/health)
+- [Diagrams](https://drawsql.app/teams/sampod-chandra-nath/diagrams/project-submission)
 - [Frontend Repository](https://github.com/sampod76/project-submission-dashboard)
 - [Frontend live site](https://project-submission.iblossomlearn.org/)
 
