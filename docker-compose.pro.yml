@@ -13,7 +13,7 @@ services:
         "prisma.config.ts",
       ]
     env_file:
-      - ${PROJECT_SUBMISSION_ENV_FILE:?Set PROJECT_SUBMISSION_ENV_FILE to the new application env file}
+      - /home/sampod/apps/envs/project/server/.env.production
     restart: "no"
     networks:
       - project-submission-backend-network
@@ -26,7 +26,7 @@ services:
         condition: service_completed_successfully
 
     env_file:
-      - ${PROJECT_SUBMISSION_ENV_FILE:?Set PROJECT_SUBMISSION_ENV_FILE to the new application env file}
+      - /home/sampod/apps/envs/project/server/.env.production
 
     environment:
       HOST: 0.0.0.0
