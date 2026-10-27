@@ -1,4 +1,6 @@
 import { requireManagement } from "../../share/authorization";
+import type { Prisma } from "@prisma/client";
+import { USER_ROLE } from "../../../global/enums/users";
 import type { ISubmissionService } from "./submission.interface";
 import { AbstractService } from "../../core/abstract/AbstractService";
 import { ApiError } from "../../errors/ApiError";
@@ -168,8 +170,13 @@ export class SubmissionService
     });
   }
   async statistics(authUser: IUserRef) {
-    requireManagement(authUser);
-    const groups = await this.repository.groupByStatus();
+    let where: Prisma.SubmissionWhereInput = {};
+    if (authUser.role === USER_ROLE.STUDENT) {
+      where = { student: { userId: authUser.userId } };
+    } else {
+      requireManagement(authUser);
+    }
+    const groups = await this.repository.groupByStatus(where);
     const counts = new Map(groups.map(group => [group.status, group._count]));
     return {
       total: groups.reduce((sum, group) => sum + group._count, 0),

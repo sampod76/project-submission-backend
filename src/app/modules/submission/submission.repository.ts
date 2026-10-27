@@ -43,10 +43,10 @@ export class SubmissionRepository {
   ): Promise<T> {
     return this.prisma.$transaction(work, { isolationLevel, timeout: 30000 });
   }
-  groupByStatus(tx?: PrismaOrTx) {
+  groupByStatus(where: Prisma.SubmissionWhereInput = {}, tx?: PrismaOrTx) {
     return (tx ?? this.prisma).submission.groupBy({
       by: ["status"],
-      where: ACTIVE_SUBMISSION_WHERE,
+      where: { AND: [ACTIVE_SUBMISSION_WHERE, where] },
       _count: true,
     });
   }

@@ -1,0 +1,469 @@
+{
+  "defaults": {
+    "admin": {
+      "id": "53ba32b7-fa81-462d-8055-38f030bb12df",
+      "profileId": "f8379bd6-12cc-4645-b9b8-ed6c94b5e86c"
+    },
+    "mentor": {
+      "id": "9953abce-2ead-49b8-a470-dddd87d9f992",
+      "profileId": "0a2febca-3339-40ad-9b3b-d15f2a8fca9d",
+      "gender": "unspecified"
+    }
+  },
+  "users": [
+    {
+      "id": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "email": "admin2@gmail.com",
+      "password": "Ae11223344?",
+      "role": "ADMIN"
+    },
+    {
+      "id": "144842e7-00c2-461b-89f0-f4f607a2a91b",
+      "email": "mentor2@gmail.com",
+      "password": "Me11223344?",
+      "role": "MENTOR"
+    },
+    {
+      "id": "19a1cd5b-ddb7-417e-acac-4d68b477527b",
+      "email": "student1@gmail.com",
+      "password": "St11223344?",
+      "role": "STUDENT"
+    },
+    {
+      "id": "91595852-e63b-471a-b45a-8871756a5f9b",
+      "email": "student2@gmail.com",
+      "password": "St11223344?",
+      "role": "STUDENT"
+    },
+    {
+      "id": "e6ade626-7aee-4141-b4de-0c5e4722d2e4",
+      "email": "student3@gmail.com",
+      "password": "St11223344?",
+      "role": "STUDENT"
+    },
+    {
+      "id": "49b10d8f-0a6e-44f3-9886-c1871abd5a65",
+      "email": "student4@gmail.com",
+      "password": "St11223344?",
+      "role": "STUDENT"
+    },
+    {
+      "id": "d3918f8a-ec32-4239-8c63-1e87eef14ad5",
+      "email": "student@gmail.com",
+      "password": "Sa11223344?",
+      "role": "STUDENT"
+    }
+  ],
+  "admins": [
+    {
+      "id": "e334005c-164a-4846-94a5-c250818275a3",
+      "userId": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "firstName": "Farhana",
+      "lastName": "Rahman",
+      "phone": "+8801700000002",
+      "bio": "Program coordinator supporting student projects and mentor onboarding."
+    }
+  ],
+  "mentors": [
+    {
+      "id": "208380de-d23e-42b1-bd1e-283b12c62b1c",
+      "userId": "144842e7-00c2-461b-89f0-f4f607a2a91b",
+      "firstName": "Tanvir",
+      "lastName": "Hossain",
+      "phone": "+8801700000003",
+      "bio": "Backend mentor focused on API design, database modeling, and maintainable TypeScript.",
+      "gender": "male",
+      "createdByAdminId": "e334005c-164a-4846-94a5-c250818275a3"
+    }
+  ],
+  "students": [
+    {
+      "id": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "userId": "19a1cd5b-ddb7-417e-acac-4d68b477527b",
+      "firstName": "Rahim",
+      "lastName": "Ahmed",
+      "phone": "+8801800000001",
+      "gender": "male",
+      "bio": "Aspiring backend developer building REST APIs with Node.js and PostgreSQL."
+    },
+    {
+      "id": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "userId": "91595852-e63b-471a-b45a-8871756a5f9b",
+      "firstName": "Karim",
+      "lastName": "Hasan",
+      "phone": "+8801800000002",
+      "gender": "male",
+      "bio": "Full-stack learner interested in business systems and reliable database design."
+    },
+    {
+      "id": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "userId": "e6ade626-7aee-4141-b4de-0c5e4722d2e4",
+      "firstName": "Nusrat",
+      "lastName": "Jahan",
+      "phone": "+8801800000003",
+      "gender": "female",
+      "bio": "Software engineering student exploring real-time applications and collaborative tools."
+    },
+    {
+      "id": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "userId": "49b10d8f-0a6e-44f3-9886-c1871abd5a65",
+      "firstName": "Sadia",
+      "lastName": "Islam",
+      "phone": "+8801800000004",
+      "gender": "female",
+      "bio": "Web developer focused on accessible user experiences and secure authentication."
+    },
+    {
+      "id": "ca90b875-477b-4629-ac66-93d8bd058b46",
+      "userId": "d3918f8a-ec32-4239-8c63-1e87eef14ad5",
+      "firstName": "Default",
+      "lastName": "Student"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "f295d093-40ca-4f56-a823-f7aad3408d6b",
+      "studentId": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "projectName": "E-Commerce REST API",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-1-ecommerce-rest-api",
+      "repoFullName": "project-submission-demo-fixtures/student-1-ecommerce-rest-api",
+      "liveUrl": "https://student-1-ecommerce-rest-api.demo.example.com",
+      "description": "A REST API for product catalogs, shopping carts, checkout, and order tracking with role-based access and PostgreSQL persistence.",
+      "status": "PENDING"
+    },
+    {
+      "id": "ded2c4af-1f07-4a47-b7d4-e4169ba915c0",
+      "studentId": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "projectName": "Task Management Application",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-1-task-management",
+      "repoFullName": "project-submission-demo-fixtures/student-1-task-management",
+      "liveUrl": "https://student-1-task-management.demo.example.com",
+      "description": "A team task board with project workspaces, deadlines, priority labels, and authenticated member assignments.",
+      "status": "APPROVED"
+    },
+    {
+      "id": "e5d99fc0-8a5b-44ea-956a-004b229a2139",
+      "studentId": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "projectName": "Online Learning Platform",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-1-online-learning",
+      "repoFullName": "project-submission-demo-fixtures/student-1-online-learning",
+      "liveUrl": "https://student-1-online-learning.demo.example.com",
+      "description": "An online classroom backend with course modules, lesson progress, instructor publishing, and student enrollment.",
+      "status": "REJECTED"
+    },
+    {
+      "id": "641fd7a8-8674-46b4-b876-ceb1cd943f04",
+      "studentId": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "projectName": "Blog Management System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-1-blog-management",
+      "repoFullName": "project-submission-demo-fixtures/student-1-blog-management",
+      "liveUrl": "https://student-1-blog-management.demo.example.com",
+      "description": "A publishing platform featuring draft posts, categories, moderated comments, and author permissions.",
+      "status": "REVISION_REQUIRED"
+    },
+    {
+      "id": "8e3731d2-0656-4490-a184-a96e1ea01c6e",
+      "studentId": "c3c24cba-c625-4dd1-be1b-65cec5a0b490",
+      "projectName": "Inventory Management API",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-1-inventory-management",
+      "repoFullName": "project-submission-demo-fixtures/student-1-inventory-management",
+      "liveUrl": "https://student-1-inventory-management.demo.example.com",
+      "description": "An inventory service for stock movements, supplier records, low-stock alerts, and warehouse reporting.",
+      "status": "PENDING"
+    },
+    {
+      "id": "c3f65bcf-25ee-43b1-8186-19a4d1ee7a2f",
+      "studentId": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "projectName": "Hospital Management System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-2-hospital-management",
+      "repoFullName": "project-submission-demo-fixtures/student-2-hospital-management",
+      "liveUrl": "https://student-2-hospital-management.demo.example.com",
+      "description": "A clinic management application for patient registration, doctor schedules, appointment booking, and visit summaries.",
+      "status": "APPROVED"
+    },
+    {
+      "id": "a9dc6efd-508d-4797-a8f3-0a831c2381e1",
+      "studentId": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "projectName": "Job Portal Backend",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-2-job-portal",
+      "repoFullName": "project-submission-demo-fixtures/student-2-job-portal",
+      "liveUrl": "https://student-2-job-portal.demo.example.com",
+      "description": "A recruitment API with employer job postings, searchable vacancies, applicant profiles, and application tracking.",
+      "status": "REJECTED"
+    },
+    {
+      "id": "faa237e1-6f6a-4f94-908b-b558699ca3db",
+      "studentId": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "projectName": "Expense Tracker Application",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-2-expense-tracker",
+      "repoFullName": "project-submission-demo-fixtures/student-2-expense-tracker",
+      "liveUrl": "https://student-2-expense-tracker.demo.example.com",
+      "description": "A personal finance application with category budgets, recurring expenses, monthly summaries, and CSV exports.",
+      "status": "REVISION_REQUIRED"
+    },
+    {
+      "id": "4b5a0b9c-5620-416f-8659-38c1494df9f7",
+      "studentId": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "projectName": "Library Management System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-2-library-management",
+      "repoFullName": "project-submission-demo-fixtures/student-2-library-management",
+      "liveUrl": "https://student-2-library-management.demo.example.com",
+      "description": "A library catalog with book availability, member borrowing, due dates, return processing, and overdue notices.",
+      "status": "PENDING"
+    },
+    {
+      "id": "0c744135-f85f-42f8-9d76-abbdd9522c80",
+      "studentId": "d6e4193b-7f9f-4da6-b6e7-9b943607e895",
+      "projectName": "Event Booking Platform",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-2-event-booking",
+      "repoFullName": "project-submission-demo-fixtures/student-2-event-booking",
+      "liveUrl": "https://student-2-event-booking.demo.example.com",
+      "description": "An event reservation platform with seat availability, attendee registrations, booking confirmations, and organizer reports.",
+      "status": "APPROVED"
+    },
+    {
+      "id": "0e1f6245-4b3d-4e9a-a987-5698c2034988",
+      "studentId": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "projectName": "Real-Time Chat Application",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-3-realtime-chat",
+      "repoFullName": "project-submission-demo-fixtures/student-3-realtime-chat",
+      "liveUrl": "https://student-3-realtime-chat.demo.example.com",
+      "description": "A WebSocket chat application with private conversations, room membership, message history, and unread counts.",
+      "status": "REJECTED"
+    },
+    {
+      "id": "24468b28-7af0-4c0c-9282-620f2711a6f7",
+      "studentId": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "projectName": "Project Management Dashboard",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-3-project-dashboard",
+      "repoFullName": "project-submission-demo-fixtures/student-3-project-dashboard",
+      "liveUrl": "https://student-3-project-dashboard.demo.example.com",
+      "description": "A collaboration dashboard with project milestones, team workload summaries, issue tracking, and activity timelines.",
+      "status": "REVISION_REQUIRED"
+    },
+    {
+      "id": "a9995617-c68e-4a6c-af75-9c57b42c8298",
+      "studentId": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "projectName": "Restaurant Ordering System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-3-restaurant-ordering",
+      "repoFullName": "project-submission-demo-fixtures/student-3-restaurant-ordering",
+      "liveUrl": "https://student-3-restaurant-ordering.demo.example.com",
+      "description": "A restaurant ordering API with menu categories, table orders, kitchen status updates, and bill summaries.",
+      "status": "PENDING"
+    },
+    {
+      "id": "20169daa-2550-48fe-954d-5a7d5ed7e5e8",
+      "studentId": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "projectName": "Student Attendance Management",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-3-student-attendance",
+      "repoFullName": "project-submission-demo-fixtures/student-3-student-attendance",
+      "liveUrl": "https://student-3-student-attendance.demo.example.com",
+      "description": "An attendance tracker with class rosters, daily check-ins, absence reports, and teacher access controls.",
+      "status": "APPROVED"
+    },
+    {
+      "id": "1bb7c367-7e1b-4501-bf21-a1268e529ddc",
+      "studentId": "daab5122-d58b-4b28-82d2-38b74407d402",
+      "projectName": "Authentication API",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-3-authentication-api",
+      "repoFullName": "project-submission-demo-fixtures/student-3-authentication-api",
+      "liveUrl": "https://student-3-authentication-api.demo.example.com",
+      "description": "An authentication service with registration, bcrypt password hashing, access tokens, refresh tokens, and role permissions.",
+      "status": "REJECTED"
+    },
+    {
+      "id": "7c92d13a-69a1-4a28-8456-b924160f40dc",
+      "studentId": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "projectName": "Personal Portfolio Application",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-4-personal-portfolio",
+      "repoFullName": "project-submission-demo-fixtures/student-4-personal-portfolio",
+      "liveUrl": "https://student-4-personal-portfolio.demo.example.com",
+      "description": "A responsive portfolio with project showcases, skill summaries, contact forms, and an authenticated content editor.",
+      "status": "REVISION_REQUIRED"
+    },
+    {
+      "id": "64fc34d0-0294-4d0a-ba26-9eff5764a57c",
+      "studentId": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "projectName": "Food Delivery Backend",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-4-food-delivery",
+      "repoFullName": "project-submission-demo-fixtures/student-4-food-delivery",
+      "liveUrl": "https://student-4-food-delivery.demo.example.com",
+      "description": "A food delivery API with restaurant listings, cart checkout, delivery assignments, and order lifecycle tracking.",
+      "status": "PENDING"
+    },
+    {
+      "id": "d080e7d9-44e6-46d0-9858-9294cf95e977",
+      "studentId": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "projectName": "Employee Management System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-4-employee-management",
+      "repoFullName": "project-submission-demo-fixtures/student-4-employee-management",
+      "liveUrl": "https://student-4-employee-management.demo.example.com",
+      "description": "An employee directory with department assignments, leave requests, manager approvals, and staff reports.",
+      "status": "APPROVED"
+    },
+    {
+      "id": "4ed4dc1d-4266-43e4-ab23-0a27b9daf5ab",
+      "studentId": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "projectName": "Course Enrollment Platform",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-4-course-enrollment",
+      "repoFullName": "project-submission-demo-fixtures/student-4-course-enrollment",
+      "liveUrl": "https://student-4-course-enrollment.demo.example.com",
+      "description": "A course registration service with prerequisites, enrollment capacity checks, waiting lists, and student schedules.",
+      "status": "REJECTED"
+    },
+    {
+      "id": "e5c3187d-71c2-47da-8306-a7fcd79783d0",
+      "studentId": "734af9f5-5469-4f3d-bb71-f544f2b1a58f",
+      "projectName": "Ticket Booking System",
+      "repoUrl": "https://github.com/project-submission-demo-fixtures/student-4-ticket-booking",
+      "repoFullName": "project-submission-demo-fixtures/student-4-ticket-booking",
+      "liveUrl": "https://student-4-ticket-booking.demo.example.com",
+      "description": "A ticket reservation system with route schedules, seat selection, reservation expiry, and booking history.",
+      "status": "REVISION_REQUIRED"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "94228446-dca2-4d2b-a49e-6686f831f9be",
+      "submissionId": "ded2c4af-1f07-4a47-b7d4-e4169ba915c0",
+      "reviewerUserId": "53ba32b7-fa81-462d-8055-38f030bb12df",
+      "previousStatus": "PENDING",
+      "status": "APPROVED",
+      "feedback": "Clear task ownership rules and consistent endpoint design. Authentication, request validation, and pagination meet the demo requirements."
+    },
+    {
+      "id": "a03c39f2-f0ee-4291-822d-f98718d32d3c",
+      "submissionId": "e5d99fc0-8a5b-44ea-956a-004b229a2139",
+      "reviewerUserId": "9953abce-2ead-49b8-a470-dddd87d9f992",
+      "previousStatus": "PENDING",
+      "status": "REJECTED",
+      "feedback": "Lesson progress is not persisted and enrollment checks are missing. Complete these core flows and add validation before resubmitting."
+    },
+    {
+      "id": "beb4aab9-e52b-4893-8c12-94c58b6e1703",
+      "submissionId": "641fd7a8-8674-46b4-b876-ceb1cd943f04",
+      "reviewerUserId": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "previousStatus": "PENDING",
+      "status": "REVISION_REQUIRED",
+      "feedback": "The publishing workflow is promising. Add centralized error handling, sanitize comment input, and document the moderation endpoints."
+    },
+    {
+      "id": "99df1661-229d-41ec-bacc-9482dcbe58fd",
+      "submissionId": "c3f65bcf-25ee-43b1-8186-19a4d1ee7a2f",
+      "reviewerUserId": "144842e7-00c2-461b-89f0-f4f607a2a91b",
+      "previousStatus": "PENDING",
+      "status": "APPROVED",
+      "feedback": "Patient and appointment workflows are clearly separated. Schedule validation and access controls are implemented consistently."
+    },
+    {
+      "id": "d9c63317-0730-4b14-a336-c73d27480dc3",
+      "submissionId": "a9dc6efd-508d-4797-a8f3-0a831c2381e1",
+      "reviewerUserId": "53ba32b7-fa81-462d-8055-38f030bb12df",
+      "previousStatus": "PENDING",
+      "status": "REJECTED",
+      "feedback": "Employer ownership checks and applicant status tracking are incomplete. Implement the required permission checks and application endpoints."
+    },
+    {
+      "id": "9e329b80-52dd-40f2-9480-8b55afe2f784",
+      "submissionId": "faa237e1-6f6a-4f94-908b-b558699ca3db",
+      "reviewerUserId": "9953abce-2ead-49b8-a470-dddd87d9f992",
+      "previousStatus": "PENDING",
+      "status": "REVISION_REQUIRED",
+      "feedback": "Budget summaries are useful, but validate currency precision, handle empty exports, and document recurring expense behavior."
+    },
+    {
+      "id": "d60f7039-92f9-46da-abd2-5b661d742906",
+      "submissionId": "0c744135-f85f-42f8-9d76-abbdd9522c80",
+      "reviewerUserId": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "previousStatus": "PENDING",
+      "status": "APPROVED",
+      "feedback": "Seat capacity validation and booking confirmation flows are complete. Organizer reports are easy to follow and the API is well documented."
+    },
+    {
+      "id": "ab1082b8-891d-406d-8be5-ffa726c54533",
+      "submissionId": "0e1f6245-4b3d-4e9a-a987-5698c2034988",
+      "reviewerUserId": "144842e7-00c2-461b-89f0-f4f607a2a91b",
+      "previousStatus": "PENDING",
+      "status": "REJECTED",
+      "feedback": "Messages disappear after a restart and private rooms lack membership checks. Persist conversation history and enforce room authorization."
+    },
+    {
+      "id": "e68f3375-ec6b-4640-a954-56725d91e352",
+      "submissionId": "24468b28-7af0-4c0c-9282-620f2711a6f7",
+      "reviewerUserId": "53ba32b7-fa81-462d-8055-38f030bb12df",
+      "previousStatus": "PENDING",
+      "status": "REVISION_REQUIRED",
+      "feedback": "Milestone views are well organized. Improve empty states, validate date ranges, and document the workload calculation."
+    },
+    {
+      "id": "29362798-0409-44d7-9d91-7afdaa529371",
+      "submissionId": "20169daa-2550-48fe-954d-5a7d5ed7e5e8",
+      "reviewerUserId": "9953abce-2ead-49b8-a470-dddd87d9f992",
+      "previousStatus": "PENDING",
+      "status": "APPROVED",
+      "feedback": "Class attendance is recorded consistently, with clear teacher permissions and helpful absence reports. The implementation is ready for demonstration."
+    },
+    {
+      "id": "91dab956-6aef-4405-937b-c7ba03580217",
+      "submissionId": "1bb7c367-7e1b-4501-bf21-a1268e529ddc",
+      "reviewerUserId": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "previousStatus": "PENDING",
+      "status": "REJECTED",
+      "feedback": "Refresh token validation and role authorization are missing from protected routes. Complete the authentication flows before resubmission."
+    },
+    {
+      "id": "2d02d9e4-c9ef-4edf-a2d5-c0e6980cdd62",
+      "submissionId": "7c92d13a-69a1-4a28-8456-b924160f40dc",
+      "reviewerUserId": "144842e7-00c2-461b-89f0-f4f607a2a91b",
+      "previousStatus": "PENDING",
+      "status": "REVISION_REQUIRED",
+      "feedback": "The portfolio is clear and responsive. Improve keyboard navigation, validate contact submissions, and add useful loading and error states."
+    },
+    {
+      "id": "9d57ef37-acf3-4043-bb57-1aa135a7c60f",
+      "submissionId": "d080e7d9-44e6-46d0-9858-9294cf95e977",
+      "reviewerUserId": "53ba32b7-fa81-462d-8055-38f030bb12df",
+      "previousStatus": "PENDING",
+      "status": "APPROVED",
+      "feedback": "Employee and leave workflows are complete, with appropriate manager permissions and consistent department reporting."
+    },
+    {
+      "id": "339a9e4a-bed6-401f-9fd2-b17f86ebafaf",
+      "submissionId": "4ed4dc1d-4266-43e4-ab23-0a27b9daf5ab",
+      "reviewerUserId": "9953abce-2ead-49b8-a470-dddd87d9f992",
+      "previousStatus": "PENDING",
+      "status": "REJECTED",
+      "feedback": "Enrollment capacity limits and prerequisite checks are missing. Implement these rules and cover concurrent registration requests."
+    },
+    {
+      "id": "2995d523-b4ea-492b-bd1b-55ca2ebd44ea",
+      "submissionId": "e5c3187d-71c2-47da-8306-a7fcd79783d0",
+      "reviewerUserId": "222c7726-5c42-4594-899a-90a4e5ed71ba",
+      "previousStatus": "PENDING",
+      "status": "REVISION_REQUIRED",
+      "feedback": "Booking history is easy to use. Improve reservation expiry handling, validate seat availability at checkout, and document conflict responses."
+    }
+  ],
+  "legacySubmissionIds": {
+    "f295d093-40ca-4f56-a823-f7aad3408d6b": "50000000-0000-4000-8000-000000000001",
+    "ded2c4af-1f07-4a47-b7d4-e4169ba915c0": "50000000-0000-4000-8000-000000000002",
+    "e5d99fc0-8a5b-44ea-956a-004b229a2139": "50000000-0000-4000-8000-000000000003",
+    "641fd7a8-8674-46b4-b876-ceb1cd943f04": "50000000-0000-4000-8000-000000000004",
+    "8e3731d2-0656-4490-a184-a96e1ea01c6e": "50000000-0000-4000-8000-000000000005",
+    "c3f65bcf-25ee-43b1-8186-19a4d1ee7a2f": "50000000-0000-4000-8000-000000000006",
+    "a9dc6efd-508d-4797-a8f3-0a831c2381e1": "50000000-0000-4000-8000-000000000007",
+    "faa237e1-6f6a-4f94-908b-b558699ca3db": "50000000-0000-4000-8000-000000000008",
+    "4b5a0b9c-5620-416f-8659-38c1494df9f7": "50000000-0000-4000-8000-000000000009",
+    "0c744135-f85f-42f8-9d76-abbdd9522c80": "50000000-0000-4000-8000-000000000010",
+    "0e1f6245-4b3d-4e9a-a987-5698c2034988": "50000000-0000-4000-8000-000000000011",
+    "24468b28-7af0-4c0c-9282-620f2711a6f7": "50000000-0000-4000-8000-000000000012",
+    "a9995617-c68e-4a6c-af75-9c57b42c8298": "50000000-0000-4000-8000-000000000013",
+    "20169daa-2550-48fe-954d-5a7d5ed7e5e8": "50000000-0000-4000-8000-000000000014",
+    "1bb7c367-7e1b-4501-bf21-a1268e529ddc": "50000000-0000-4000-8000-000000000015",
+    "7c92d13a-69a1-4a28-8456-b924160f40dc": "50000000-0000-4000-8000-000000000016",
+    "64fc34d0-0294-4d0a-ba26-9eff5764a57c": "50000000-0000-4000-8000-000000000017",
+    "d080e7d9-44e6-46d0-9858-9294cf95e977": "50000000-0000-4000-8000-000000000018",
+    "4ed4dc1d-4266-43e4-ab23-0a27b9daf5ab": "50000000-0000-4000-8000-000000000019",
+    "e5c3187d-71c2-47da-8306-a7fcd79783d0": "50000000-0000-4000-8000-000000000020"
+  }
+}

@@ -4,7 +4,11 @@ import { env } from "../../config/env";
 
 const createClient = () =>
   new PrismaClient({
-    adapter: new PrismaPg({ connectionString: env.DATABASE_URL }),
+    adapter: new PrismaPg({
+      connectionString: env.DATABASE_URL,
+      // Prisma 7 uses pg's pool settings; URL connect_timeout does not set this.
+      connectionTimeoutMillis: 20_000,
+    }),
   });
 export type AppPrismaClient = ReturnType<typeof createClient>;
 

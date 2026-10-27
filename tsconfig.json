@@ -1,5 +1,5 @@
 {
-  "include": ["src", "tests", "@types/**/*.d.ts"],
+  "include": ["src", "prisma/seed.ts", "tests", "@types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"],
 
   "compilerOptions": {

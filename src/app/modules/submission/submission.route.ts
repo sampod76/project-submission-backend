@@ -47,7 +47,7 @@ export class SubmissionRoutes extends AbstractRoute {
     );
     this.router.get(
       "/statistics",
-      this.authMiddleware(ADMIN, MENTOR),
+      this.authMiddleware(ADMIN, MENTOR, STUDENT),
       this.controller.statistics,
     );
     this.router.get(
