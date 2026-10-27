@@ -30,3 +30,5 @@ docker builder prune -f
 log "Backend deployed successfully"
 
 exit 0
+
+# chmod +x deploy.sh
