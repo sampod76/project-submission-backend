@@ -1,0 +1,2272 @@
+{
+  "info": {
+    "_postman_id": "358dc1e7-02d8-4de0-81a7-909ed119755c",
+    "name": "Project Submission Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "24259610",
+    "_collection_link": "https://go.postman.co/collection/24259610-358dc1e7-02d8-4de0-81a7-909ed119755c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.expect(pm.response.code).to.equal(201));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 201) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(201); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"userId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"userId\", id); }\n    { const id = result?.data?.student?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"studentId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"studentId\", id); }\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Akash\",\n  \"lastName\": \"Doe\",\n  \"email\": \"student@gmail.com\",\n  \"password\": \"Sa11223344?\",\n  \"phone\": \"01700000000\",\n  \"gender\": \"MALE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "## Overview\n\nCreate a STUDENT User and Student profile atomically.\n\n## Authentication\n\nPublic; no bearer token required.\n\n## Request\n\n`POST /api/v1/auth/register`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `email` | Yes | string; trimmed; valid email; maximum 255; lowercased |\n| `password` | Yes | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; 8–72 characters and at most 72 UTF-8 bytes; uppercase, lowercase and digit required. Fill locally. |\n| `firstName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `lastName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `phone` | No | string; trimmed; minimum 1; maximum 20 |\n| `gender` | No | string; trimmed; minimum 1; maximum 255; Text, not a gender enum. Examples MALE/FEMALE are fictional values. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"{{student_email}}\",\n  \"password\": \"{{student_password}}\",\n  \"phone\": \"01700000000\",\n  \"gender\": \"MALE\"\n}\n```\n\n## Response\n\nHTTP **201**. Returns `{ success:true, statusCode:201, message:\"Student registered\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 409 | Email already in use |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nEmail is trimmed/lowercased and unique across all accounts, including deleted ones. The server hashes the password and assigns STUDENT. role, userId and timestamps are forbidden. Registration does not issue tokens. gender is text, not an enum.\n\n## Postman usage\n\nFill local credential placeholders before requests that require them. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\nconst jwt1 = response.data.accessToken;\nconst role = response.data.user.role;\n\nif (role) {\n    pm.collectionVariables.set(`${role}_token`, `${jwt1}`);\n    // pm.collectionVariables.set(`${role}_token`, `${jwt1}`);\n}\npm.collectionVariables.set(`refreshToken`, response.data.refreshToken);\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "// {\n//   \"email\": \"sampod@gmail.com\",\n//   \"password\": \"Sa11223344?\"\n// }\n{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"Ae11223344?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "## Overview\n\nValidate credentials, update lastLoginAt and issue access/refresh tokens.\n\n## Authentication\n\nPublic; no bearer token required.\n\n## Request\n\n`POST /api/v1/auth/login`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `email` | Yes | string; trimmed; valid email; maximum 255; lowercased |\n| `password` | Yes | string; minimum 1; maximum 1024; 8–72 characters and at most 72 UTF-8 bytes; uppercase, lowercase and digit required. Fill locally. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{login_password}}\"\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"Login successful\", data }`. `meta` is omitted. Confirmed data keys: `accessToken`, `refreshToken`, `expiresIn`, `user`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Invalid credentials/refresh token or unavailable account. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nInactive/deleted accounts cannot log in. Sets refreshToken cookie: HttpOnly, SameSite=Lax, path /api/v1/auth, Secure in production, configured refresh expiry. Cookie jar holds the most recent account for this host. Login chooses activeRole and saves the returned role token, without changing target userId.\n\n## Postman usage\n\nFill local credential placeholders before requests that require them. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const transport = pm.variables.get(\"refreshTransport\") || \"cookie\";",
+                  "if (![\"cookie\", \"body\"].includes(transport)) throw new Error(\"refreshTransport must be cookie or body\");",
+                  "const body = transport === \"body\" ? { refreshToken: pm.variables.get(\"refreshToken\") || \"\" } : {};",
+                  "pm.request.body.update(JSON.stringify(body));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    const role = result.data?.user?.role, token = result.data?.accessToken;",
+                  "    pm.test(\"Access token and role\", () => { pm.expect([\"ADMIN\", \"MENTOR\", \"STUDENT\"].includes(role)).to.equal(true); pm.expect(typeof token === \"string\" && token.length > 0).to.equal(true); });",
+                  "    if ([\"ADMIN\", \"MENTOR\", \"STUDENT\"].includes(role) && typeof token === \"string\" && token.length > 0) {",
+                  "      pm.environment.set(role + \"_token\", token); pm.environment.set(\"activeRole\", role);",
+                  "      if ([\"ADMIN\", \"MENTOR\"].includes(role)) pm.environment.set(\"reviewerRole\", role);",
+                  "      if (typeof result.data.user.id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(result.data.user.id)) pm.environment.set(\"currentUserId\", result.data.user.id);",
+                  "      if (typeof result.data.refreshToken === \"string\" && result.data.refreshToken.length > 0) pm.environment.set(\"refreshToken\", result.data.refreshToken);",
+                  "    }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh-token"]
+            },
+            "description": "## Overview\n\nValidate the refresh credential and issue fresh tokens after rechecking the current account.\n\n## Authentication\n\nNo access-token requirement; valid refresh cookie or body token required.\n\n## Request\n\n`POST /api/v1/auth/refresh-token`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `refreshToken` | No | string; minimum 10; maximum 4096; Optional body fallback, 10–4096 characters; cookie takes precedence. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `accessToken`, `refreshToken`, `expiresIn`, `user`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Invalid credentials/refresh token or unavailable account. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nDefault refreshTransport=cookie sends {} using the cookie jar. Set refreshTransport=body to send {\"refreshToken\":\"{{refreshToken}}\"}. Clear/disable conflicting cookies when testing body fallback: a present cookie takes precedence. The script captures refreshToken only if supplied in JSON and never reads HttpOnly cookies. Invalid signature, expiry, malformed User ID or unavailable account is rejected. Expiry values in saved examples are illustrative defaults, not guaranteed deployment settings.\n\n## Postman usage\n\nFill local credential placeholders before requests that require them. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Empty data\", () => pm.expect(result.data).to.equal(null));",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "## Overview\n\nClear the refresh cookie at its configured path.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/auth/logout`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"Logged out.\", data }`. `meta` is omitted. Confirmed data keys: none (`data:null`). The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nThere is no server-side revocation. Existing stateless access and refresh tokens remain valid until expiry. Saved token variables are not erased or represented as revoked. The host cookie belongs to the most recently logged-in account.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"currentUserId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"currentUserId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "session"]
+            },
+            "description": "## Overview\n\nRead the authenticated account’s id, email, role and isActive.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/auth/session`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nResponse selection is controlled server-side; password hashes are never returned.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n    { const id = result.data?.id; if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"currentUserId\", id); const role = result.data?.role; const p = result.data?.[String(role).toLowerCase()]; const key = { ADMIN: \"adminId\", MENTOR: \"mentorId\", STUDENT: \"studentId\" }[role]; if (key && typeof p?.id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) pm.environment.set(key, p.id); }\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ADMIN_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "profile"]
+            },
+            "description": "## Overview\n\nRegistered legacy authenticated profile endpoint.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/auth/profile`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `createdAt`, `updatedAt`, `admin`, `mentor`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nUses the safe explicit profile selection. Deleted related profiles are null. Prefer GET /api/v1/users/profile for new clients.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{current_password}}\",\n  \"newPassword\": \"{{new_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "change-password"]
+            },
+            "description": "## Overview\n\nLegacy current-password verification and bcrypt password replacement.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/auth/change-password`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `currentPassword` | Yes | string; minimum 1; maximum 1024; Current password, 1–1024 characters. Fill locally. |\n| `newPassword` | Yes | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; Strong-password rules and 72 UTF-8 byte limit apply. Fill locally. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"currentPassword\": \"{{current_password}}\",\n  \"newPassword\": \"{{new_password}}\"\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `message`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nNew clients can use PATCH /api/v1/users/change-password. The password policy applies. No token revocation occurs. Failed conditional concurrent password updates may return 404.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "Student registration, role-aware login, refresh cookies, session lookup and logout. Includes the registered legacy profile/password routes. Public requests override authorization; protected requests use activeRole. Postman manages cookies; scripts only capture tokens from successful JSON responses."
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result.data?.id; if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"currentUserId\", id); const role = result.data?.role; const p = result.data?.[String(role).toLowerCase()]; const key = { ADMIN: \"adminId\", MENTOR: \"mentorId\", STUDENT: \"studentId\" }[role]; if (key && typeof p?.id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) pm.environment.set(key, p.id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "profile"]
+            },
+            "description": "## Overview\n\nRead safe account data and the associated Admin, Mentor or Student profile.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/users/profile`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `createdAt`, `updatedAt`, `admin`, `mentor`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nNo dynamic fields/select API exists. Deleted related profiles are null. The account ID is taken from JWT, not path/body input.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result.data?.id; if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"currentUserId\", id); const role = result.data?.role; const p = result.data?.[String(role).toLowerCase()]; const key = { ADMIN: \"adminId\", MENTOR: \"mentorId\", STUDENT: \"studentId\" }[role]; if (key && typeof p?.id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)) pm.environment.set(key, p.id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"bio\": \"Backend developer\",\n  \"phone\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "profile"]
+            },
+            "description": "## Overview\n\nPartially update the profile table associated with the authenticated role.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/users/profile`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `firstName` | No | string; trimmed; minimum 1; maximum 100 |\n| `lastName` | No | string; trimmed; minimum 1; maximum 100 |\n| `phone` | No | string or null; trimmed; minimum 1; maximum 20 |\n| `bio` | No | string or null; trimmed; maximum 10000 |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"firstName\": \"John\",\n  \"bio\": \"Backend developer\",\n  \"phone\": null\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `createdAt`, `updatedAt`, `admin`, `mentor`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nAt least one permitted field is required. role, userId, password, gender and lifecycle fields are forbidden. phone and bio may be cleared with null. Missing/deleted profiles cannot be updated.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Change My Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{current_password}}\",\n  \"newPassword\": \"{{new_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "change-password"]
+            },
+            "description": "## Overview\n\nVerify the current password and store a bcrypt hash of its replacement.\n\n## Authentication\n\nADMIN, MENTOR or STUDENT; identity comes from the bearer token. No client-supplied owner ID is accepted. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/users/change-password`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `currentPassword` | Yes | string; minimum 1; maximum 1024; Current password, 1–1024 characters. Fill locally. |\n| `newPassword` | Yes | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; Strong-password rules and 72 UTF-8 byte limit apply. Fill locally. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"currentPassword\": \"{{current_password}}\",\n  \"newPassword\": \"{{new_password}}\"\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `message`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nReuses the authentication controller/service. Current password must match and new-password rules apply. Previously issued tokens are not revoked.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "List Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`id`, `email`, `role`, `isActive`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-10-01",
+                  "description": "string; YYYY-MM-DD. Inclusive createdAt lower bound, YYYY-MM-DD UTC.",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-10-31",
+                  "description": "string; YYYY-MM-DD. Inclusive through this UTC date’s end; cannot precede fromDate.",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "STUDENT",
+                  "description": "`ADMIN`, `MENTOR`, `STUDENT`. ",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "`true`, `false`. Query accepts the strings true/false; request body requires a JSON boolean.",
+                  "disabled": true
+                },
+                {
+                  "key": "ids",
+                  "value": "{{userId}}",
+                  "description": "pipeline. Input is one or more comma-separated User UUIDs.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## Overview\n\nList non-deleted users with email search, filters, sorting and pagination.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/users`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `search` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `searchTerm` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `sortBy` | No | `id`, `email`, `role`, `isActive`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n| `fromDate` | No | string; YYYY-MM-DD; Inclusive createdAt lower bound, YYYY-MM-DD UTC. |\n| `toDate` | No | string; YYYY-MM-DD; Inclusive through this UTC date’s end; cannot precede fromDate. |\n| `role` | No | `ADMIN`, `MENTOR`, `STUDENT` |\n| `isActive` | No | `true`, `false`; Query accepts the strings true/false; request body requires a JSON boolean. |\n| `ids` | No | pipeline; Input is one or more comma-separated User UUIDs. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `email`, `role`, `isActive`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nsearch takes precedence over searchTerm. fromDate/toDate constrain createdAt; toDate includes the UTC end of that day. ids is a comma-separated UUID list. Passwords and lastLoginAt are not selected by this list.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Set User Active Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{userId}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{userId}}", "status"]
+            },
+            "description": "## Overview\n\nActivate/deactivate an existing non-deleted User.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/users/:id/status`\n\nPath `id`: required UUID from `{{userId}}`.\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `isActive` | Yes | boolean; Query accepts the strings true/false; request body requires a JSON boolean. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"isActive\": false\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 409 | You cannot deactivate your own account |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nOnly isActive is accepted, never role. Self-deactivation returns 409. Status change and USER_STATUS_CHANGED audit commit atomically. Choose a separate disposable account as userId.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "## Overview\n\nRead a non-deleted User by account UUID through the active legacy management route.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/users/:id`\n\nPath `id`: required UUID from `{{userId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | User not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nADMIN only. Returns sanitized User scalars including lastLoginAt, without profile relations.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{updated_email}}\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "## Overview\n\nPartially update User fields through the registered legacy ADMIN endpoint.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/users/:id`\n\nPath `id`: required UUID from `{{userId}}`.\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `email` | No | string; trimmed; valid email; maximum 255; lowercased |\n| `password` | No | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; 8–72 characters and at most 72 UTF-8 bytes; uppercase, lowercase and digit required. Fill locally. |\n| `role` | No | `ADMIN`, `MENTOR`, `STUDENT` |\n| `isActive` | No | boolean; Query accepts the strings true/false; request body requires a JSON boolean. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"email\": \"{{updated_email}}\",\n  \"isActive\": true\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"User updated\", data }`. `meta` is omitted. Confirmed data keys: `id`, `email`, `role`, `isActive`, `lastLoginAt`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 409 | Duplicate, invalid state, self-deactivation or concurrent transaction conflict as applicable. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nAllows optional email, password, role and isActive. Unlike dedicated profile/status schemas, unknown keys are stripped and an empty body passes validation. Replacement passwords are hashed. Role changes do not migrate/create profiles. Self-deactivation is blocked. This route does not produce the status-change audit used by /users/:id/status; prefer that dedicated route.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Empty data\", () => pm.expect(result.data).to.equal(null));\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "## Overview\n\nSoft-delete a non-deleted User account via the active ADMIN management route.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`DELETE /api/v1/users/:id`\n\nPath `id`: required UUID from `{{userId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"User deleted\", data }`. `meta` is omitted. Confirmed data keys: none (`data:null`). The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | User not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nSets isDeleted/deletedAt and invalidates local auth cache. No physical/cascading profile deletion occurs. Response data is null. No self-delete guard or restore HTTP route is registered. Use only a separate disposable target.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "Own profiles/passwords, ADMIN user listing/status management and three legacy UUID routes. Own requests use activeRole. Management uses ADMIN_token. userId is a management target; Login only changes currentUserId.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Create Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.expect(pm.response.code).to.equal(201));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 201) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(201); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"adminId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"adminId\", id); }",
+                  "    { const id = result?.data?.userId; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"userId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"userId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\",\n  \"phone\": null,\n  \"bio\": \"Application administrator\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admins",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admins"]
+            },
+            "description": "## Overview\n\nCreate an ADMIN User and matching Admin profile transactionally.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/admins`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `firstName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `lastName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `bio` | No | string or null |\n| `phone` | No | string or null; trimmed; maximum 20 |\n| `email` | Yes | string; trimmed; valid email; maximum 255; lowercased |\n| `password` | Yes | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; 8–72 characters and at most 72 UTF-8 bytes; uppercase, lowercase and digit required. Fill locally. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\",\n  \"phone\": null,\n  \"bio\": \"Application administrator\"\n}\n```\n\n## Response\n\nHTTP **201**. Returns `{ success:true, statusCode:201, message:\"Admin created\", data }`. `meta` is omitted. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 409 | Email already in use |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nADMIN only. Role is assigned by the server. Email uniqueness/password policy are reused. firstName/lastName are required; phone/bio optional and nullable. This legacy profile validator permits empty phone and has no API bio length cap.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "List Admins",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admins?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admins"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`id`, `firstName`, `lastName`, `phone`, `createdAt`, `updatedAt`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-10-01",
+                  "description": "string; YYYY-MM-DD. Inclusive createdAt lower bound, YYYY-MM-DD UTC.",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-10-31",
+                  "description": "string; YYYY-MM-DD. Inclusive through this UTC date’s end; cannot precede fromDate.",
+                  "disabled": true
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "description": "string; UUID. Related User account UUID, not a profile ID.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## Overview\n\nSearch and paginate non-deleted Admin profiles.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/admins`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `search` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `searchTerm` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `sortBy` | No | `id`, `firstName`, `lastName`, `phone`, `createdAt`, `updatedAt`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n| `fromDate` | No | string; YYYY-MM-DD; Inclusive createdAt lower bound, YYYY-MM-DD UTC. |\n| `toDate` | No | string; YYYY-MM-DD; Inclusive through this UTC date’s end; cannot precede fromDate. |\n| `userId` | No | string; UUID; Related User account UUID, not a profile ID. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nSearch covers firstName, lastName and phone, not email; search precedes searchTerm. userId filters the related account UUID. Filtering is by profile deletion independently of User state. No User relation is selected in this list.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admins/{{adminId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admins", "{{adminId}}"]
+            },
+            "description": "## Overview\n\nRead a non-deleted Admin profile with safe related User information.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/admins/:id`\n\nPath `id`: required UUID from `{{adminId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`, `user`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Admin not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nPath id is an Admin profile UUID, not User UUID. The nested User includes id, email, role, isActive and isDeleted.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Updated administrator biography\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admins/{{adminId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admins", "{{adminId}}"]
+            },
+            "description": "## Overview\n\nPartially update an existing Admin profile.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/admins/:id`\n\nPath `id`: required UUID from `{{adminId}}`.\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `firstName` | No | string; trimmed; minimum 1; maximum 100 |\n| `lastName` | No | string; trimmed; minimum 1; maximum 100 |\n| `bio` | No | string or null |\n| `phone` | No | string or null; trimmed; maximum 20 |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"bio\": \"Updated administrator biography\"\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"Admin updated\", data }`. `meta` is omitted. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Admin not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nAt least one allowed profile field is required. Only firstName, lastName, phone and bio are accepted. Account email, password, role and userId cannot be written here.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admins/{{adminId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admins", "{{adminId}}"]
+            },
+            "description": "## Overview\n\nMark an Admin profile deleted and return the updated profile.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`DELETE /api/v1/admins/:id`\n\nPath `id`: required UUID from `{{adminId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"Admin deleted\", data }`. `meta` is omitted. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Admin not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nOnly the profile is deleted. Its User can still authenticate; created Mentor records remain. No physical cascade or self-profile deletion guard is implemented.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "Five active ADMIN-only profile CRUD endpoints outside the README primary endpoint table. Admin IDs are profile IDs, not User IDs. Creation is transactional. Profile deletion leaves the User account and its authentication state unchanged.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mentor",
+      "item": [
+        {
+          "name": "Create Mentor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.expect(pm.response.code).to.equal(201));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 201) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(201); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"mentorId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"mentorId\", id); }",
+                  "    { const id = result?.data?.userId; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"userId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"userId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"{{mentor_email}}\",\n  \"password\": \"{{mentor_password}}\",\n  \"gender\": \"FEMALE\",\n  \"phone\": \"01700000001\",\n  \"bio\": \"Web instructor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/mentors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "mentors"]
+            },
+            "description": "## Overview\n\nAtomically create a MENTOR User and corresponding profile.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/mentors`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `firstName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `lastName` | Yes | string; trimmed; minimum 1; maximum 100 |\n| `phone` | No | string or null; trimmed; minimum 1; maximum 20 |\n| `bio` | No | string or null; trimmed; maximum 10000 |\n| `email` | Yes | string; trimmed; valid email; maximum 255; lowercased |\n| `password` | Yes | string; minimum 8; maximum 72; Password must include a lowercase letter; Password must include an uppercase letter; Password must include a number; 8–72 characters and at most 72 UTF-8 bytes; uppercase, lowercase and digit required. Fill locally. |\n| `gender` | Yes | string; trimmed; minimum 1; maximum 255; Text, not a gender enum. Examples MALE/FEMALE are fictional values. |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"{{mentor_email}}\",\n  \"password\": \"{{mentor_password}}\",\n  \"gender\": \"FEMALE\",\n  \"phone\": \"01700000001\",\n  \"bio\": \"Web instructor\"\n}\n```\n\n## Response\n\nHTTP **201**. Returns `{ success:true, statusCode:201, message:\"Mentor created\", data }`. `meta` is omitted. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `gender`, `createdAt`, `updatedAt`, `user`, `createdByAdminId`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 409 | Email already in use |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nRequires an active non-deleted Admin profile. createdByAdminId comes from that profile, never client input or a User ID. gender is required bounded text, not an enum. Email duplicates return 409.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "List Mentors",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mentors?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "mentors"],
+              "query": [
+                {
+                  "key": "searchTerm",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`id`, `createdAt`, `firstName`, `lastName`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                }
+              ]
+            },
+            "description": "## Overview\n\nSearch/paginate mentor profiles with safe account fields.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/mentors`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `searchTerm` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `search` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `sortBy` | No | `id`, `createdAt`, `firstName`, `lastName`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `gender`, `createdAt`, `updatedAt`, `user`, `createdByAdminId`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nExcludes deleted profiles/Users and requires User role MENTOR. Inactive Users may remain in this admin directory. Search covers names, phone and email; searchTerm precedes search.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "ADMIN-only mentor creation and paginated directory. Creation resolves createdByAdminId from the authenticated Admin profile and atomically creates a MENTOR User/profile.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "List Students",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students"],
+              "query": [
+                {
+                  "key": "searchTerm",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`id`, `createdAt`, `firstName`, `lastName`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                }
+              ]
+            },
+            "description": "## Overview\n\nSearch/paginate student profiles with safe account fields.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/students`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `searchTerm` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `search` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `sortBy` | No | `id`, `createdAt`, `firstName`, `lastName`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `userId`, `firstName`, `lastName`, `phone`, `bio`, `gender`, `createdAt`, `updatedAt`, `user`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nADMIN only. Excludes deleted profiles/Users and requires role STUDENT. Inactive accounts may remain visible. Search covers names, phone and email; searchTerm precedes search.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "ADMIN-only Student directory with database pagination, names/phone/email search and safe account fields. Public student registration is in Authentication.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Submission",
+      "item": [
+        {
+          "name": "Create Submission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.expect(pm.response.code).to.equal(201));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 201) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(201); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"submissionId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"submissionId\", id); }",
+                  "    { const id = result?.data?.studentId; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"studentId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"studentId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{STUDENT_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectName\": \"Portfolio Website\",\n  \"repoUrl\": \"{{repo_url}}\",\n  \"liveUrl\": \"https://portfolio.example.test\",\n  \"description\": \"A responsive portfolio website.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions"]
+            },
+            "description": "## Overview\n\nCreate a PENDING submission for the Student resolved from JWT.\n\n## Authentication\n\nSTUDENT with an active non-deleted Student profile. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/submissions`\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `projectName` | Yes | string; trimmed; minimum 1; maximum 200 |\n| `repoUrl` | Yes | string; trimmed; maximum 2048; valid URL; Maximum 2048 characters; HTTPS GitHub owner/repository URL, see business rules. |\n| `liveUrl` | Yes | string; trimmed; maximum 2048; valid URL; Maximum 2048; HTTP/HTTPS URL without embedded credentials. |\n| `description` | Yes | string; trimmed; minimum 1; maximum 10000 |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"projectName\": \"Portfolio Website\",\n  \"repoUrl\": \"{{repo_url}}\",\n  \"liveUrl\": \"https://portfolio.example.test\",\n  \"description\": \"A responsive portfolio website.\"\n}\n```\n\n## Response\n\nHTTP **201**. Returns `{ success:true, statusCode:201, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `studentId`, `projectName`, `repoUrl`, `repoFullName`, `liveUrl`, `description`, `status`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 409 | This GitHub repository already has an active submission |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nHTTPS github.com or www.github.com URL with exactly owner/repository. Trailing .git/slashes are normalized; query strings/fragments do not affect identity. Credentials, nonstandard ports and branch/file paths are rejected. The server computes lowercase owner/repository in repoFullName. Active duplicates are prevented across all students by transaction advisory locking and READ COMMITTED checks. Duplicate checking ignores rows with isDeleted=true. studentId, status, repoFullName and timestamps are forbidden input.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Submissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{STUDENT_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/my?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions", "my"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "`PENDING`, `APPROVED`, `REJECTED`, `REVISION_REQUIRED`. ",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## Overview\n\nRead the caller’s active submissions with pagination/status filtering.\n\n## Authentication\n\nSTUDENT; own records only. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/submissions/my`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `status` | No | `PENDING`, `APPROVED`, `REJECTED`, `REVISION_REQUIRED` |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `studentId`, `projectName`, `repoUrl`, `repoFullName`, `liveUrl`, `description`, `status`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nOwnership is resolved from JWT. Deleted submissions and deleted parent Student/User records are excluded. Only page, limit and status are supported. Order is createdAt descending then id ascending.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 200) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "f47e4879-08db-45cf-ba12-c7a83350eee3"
+                }
+              ]
+            },
+            "description": "## Overview\n\nRead an active submission with safe Student information.\n\n## Authentication\n\nADMIN or MENTOR; STUDENT only if student.userId matches the authenticated User. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/submissions/:id`\n\nPath `id`: required UUID from `{{submissionId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `studentId`, `projectName`, `repoUrl`, `repoFullName`, `liveUrl`, `description`, `status`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Submission not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nNon-owner Students receive 403. Deleted submissions or deleted parent Student/User records are hidden with 404.\n\n## Postman usage\n\nSet activeRole to the authenticated role. Successful login selects it automatically. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Submission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{STUDENT_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectName\": \"Updated Portfolio\",\n  \"description\": \"An improved responsive portfolio.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/{{submissionId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions", "{{submissionId}}"]
+            },
+            "description": "## Overview\n\nPartially update an owned PENDING submission.\n\n## Authentication\n\nSTUDENT owner with an active Student profile. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`PATCH /api/v1/submissions/:id`\n\nPath `id`: required UUID from `{{submissionId}}`.\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `projectName` | No | string; trimmed; minimum 1; maximum 200 |\n| `repoUrl` | No | string; trimmed; maximum 2048; valid URL; Maximum 2048 characters; HTTPS GitHub owner/repository URL, see business rules. |\n| `liveUrl` | No | string; trimmed; maximum 2048; valid URL; Maximum 2048; HTTP/HTTPS URL without embedded credentials. |\n| `description` | No | string; trimmed; minimum 1; maximum 10000 |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"projectName\": \"Updated Portfolio\",\n  \"description\": \"An improved responsive portfolio.\"\n}\n```\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `studentId`, `projectName`, `repoUrl`, `repoFullName`, `liveUrl`, `description`, `status`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 409 | Only PENDING submissions can be updated |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nAt least one permitted field is required. HTTPS github.com or www.github.com URL with exactly owner/repository. Trailing .git/slashes are normalized; query strings/fragments do not affect identity. Credentials, nonstandard ports and branch/file paths are rejected. The server computes lowercase owner/repository in repoFullName. A repoUrl change recomputes identity and checks duplicates under the shared lock. Conditional writes recheck owner, PENDING and isDeleted=false. Client status, ownership, deletion flags and timestamps are forbidden.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Soft Delete Submission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{STUDENT_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/{{submissionId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions", "{{submissionId}}"]
+            },
+            "description": "## Overview\n\nSoft-delete an owned PENDING submission without removing history.\n\n## Authentication\n\nSTUDENT owner; PENDING only. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`DELETE /api/v1/submissions/:id`\n\nPath `id`: required UUID from `{{submissionId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `isDeleted`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 409 | Only PENDING submissions can be deleted |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nSets isDeleted=true/deletedAt=current time. Reviewed submissions cannot be deleted. Stored review history remains. Response includes id/isDeleted only, not deletedAt.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Submissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{reviewerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "portfolio",
+                  "description": "string; trimmed; maximum 100. Case-insensitive literal substring; max 100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "`PENDING`, `APPROVED`, `REJECTED`, `REVISION_REQUIRED`. ",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`id`, `createdAt`, `updatedAt`, `projectName`, `status`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                }
+              ]
+            },
+            "description": "## Overview\n\nFilter/search/sort/paginate all permitted active submissions.\n\n## Authentication\n\nADMIN or MENTOR. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/submissions`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `searchTerm` | No | string; trimmed; maximum 100; Case-insensitive literal substring; max 100 characters. |\n| `status` | No | `PENDING`, `APPROVED`, `REJECTED`, `REVISION_REQUIRED` |\n| `sortBy` | No | `id`, `createdAt`, `updatedAt`, `projectName`, `status`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `studentId`, `projectName`, `repoUrl`, `repoFullName`, `liveUrl`, `description`, `status`, `createdAt`, `updatedAt`, `student`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nSearch covers projectName, repoFullName, description and Student first/last names. Deleted submissions and deleted parent Student/User records are excluded. All four status enum values are accepted as filters.\n\n## Postman usage\n\nSet reviewerRole to ADMIN or MENTOR and log in as that role. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{reviewerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "submissions", "statistics"]
+            },
+            "description": "## Overview\n\nRead consistent status counts from one grouped query.\n\n## Authentication\n\nADMIN or MENTOR. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/submissions/statistics`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `total`, `pending`, `approved`, `rejected`, `revisionRequired`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nExcludes deleted submissions and deleted parent Student/User records. total equals pending + approved + rejected + revisionRequired. No query filters are implemented. revisionRequired exists despite the lack of a transition into that state.\n\n## Postman usage\n\nSet reviewerRole to ADMIN or MENTOR and log in as that role. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "STUDENT-owned create/read/update/soft-delete plus ADMIN/MENTOR list/statistics. Edits and deletion require PENDING. Reviewed submissions cannot be changed through these endpoints. Use a separate fresh PENDING record for deletion testing.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{STUDENT_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Submission Review",
+      "item": [
+        {
+          "name": "Review Submission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.expect(pm.response.code).to.equal(201));\nlet result;\npm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });\nif (result && pm.response.code === 201) {\n  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(201); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });\n  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });\n  if (result.success === true) {\n    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"reviewId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"reviewId\", id); }\n  }\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ADMIN_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"feedback\": \"Good implementation.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/{{submissionId}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "reviews"
+              ]
+            },
+            "description": "## Overview\n\nTransition PENDING to APPROVED/REJECTED and append review history.\n\n## Authentication\n\nActive ADMIN or MENTOR. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`POST /api/v1/submissions/:id/reviews`\n\nPath `id`: required UUID from `{{submissionId}}`.\n\n### Body\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `status` | Yes | `APPROVED`, `REJECTED` |\n| `feedback` | No | string or null; trimmed; maximum 10000 |\n\n### Query parameters\n\nNone.\n\nExample input:\n\n```json\n{\n  \"status\": \"APPROVED\",\n  \"feedback\": \"Good implementation.\"\n}\n```\n\n## Response\n\nHTTP **201**. Returns `{ success:true, statusCode:201, message:\"Submission reviewed\", data }`. `meta` is omitted. Confirmed data keys: `id`, `submissionId`, `reviewerUserId`, `previousStatus`, `status`, `feedback`, `createdAt`, `updatedAt`, `reviewer`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Target/profile missing or deleted, or a conditional update no longer matches. |\n| 409 | Only PENDING submissions can be reviewed |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nThe reviewer is rechecked/locked. previousStatus is retained. The conditional PENDING update, review insertion and SUBMISSION_REVIEWED audit commit atomically; any failure rolls all back. Competing reviews cannot both commit. PENDING and REVISION_REQUIRED are not accepted targets. No re-review/reopening exists.\n\n## Postman usage\n\nSet reviewerRole to ADMIN or MENTOR and log in as that role. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission Review History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.[0]?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"reviewId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"reviewId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{reviewerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/submissions/{{submissionId}}/reviews?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "submissions",
+                "{{submissionId}}",
+                "reviews"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                }
+              ]
+            },
+            "description": "## Overview\n\nRead non-deleted review history with safe reviewer information.\n\n## Authentication\n\nADMIN or MENTOR; STUDENT access is forbidden. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/submissions/:id/reviews`\n\nPath `id`: required UUID from `{{submissionId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `submissionId`, `reviewerUserId`, `previousStatus`, `status`, `feedback`, `createdAt`, `updatedAt`, `reviewer`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Submission not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nOrdered by createdAt then id ascending (oldest first). A missing/deleted submission or deleted parent Student/User is hidden with 404. Only page/limit are supported.\n\n## Postman usage\n\nSet reviewerRole to ADMIN or MENTOR and log in as that role. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "ADMIN/MENTOR review transitions from PENDING to APPROVED or REJECTED only. Status, review and audit writes are atomic and protected from competing reviews. History is oldest first. reviewerRole selects the role token; no reopening or revision route exists.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{reviewerToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Audit Log",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Paginated data\", () => { pm.expect(Array.isArray(result.data)).to.equal(true); pm.expect(Number.isInteger(result.meta?.page) && result.meta.page > 0).to.equal(true); pm.expect(Number.isInteger(result.meta?.limit) && result.meta.limit > 0 && result.meta.limit <= 100).to.equal(true); pm.expect(Number.isInteger(result.meta?.total) && result.meta.total >= 0).to.equal(true); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.[0]?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"auditLogId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"auditLogId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/audit-logs?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "audit-logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "number; integer; greater than 0; maximum 1000000. Default 1; integer 1–1,000,000."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "number; integer; greater than 0; maximum 100. Default 10; integer 1–100."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "`createdAt`. Whitelisted sort field; default createdAt."
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "`asc`, `desc`. Default desc; asc/desc."
+                },
+                {
+                  "key": "action",
+                  "value": "SUBMISSION_REVIEWED",
+                  "description": "string; trimmed; minimum 1; maximum 100. Exact action; 1–100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "entityType",
+                  "value": "Submission",
+                  "description": "string; trimmed; minimum 1; maximum 100. Exact type; 1–100 characters.",
+                  "disabled": true
+                },
+                {
+                  "key": "entityId",
+                  "value": "{{submissionId}}",
+                  "description": "string; UUID. Exact entity UUID.",
+                  "disabled": true
+                },
+                {
+                  "key": "actorUserId",
+                  "value": "{{currentUserId}}",
+                  "description": "string; UUID. Exact actor User UUID.",
+                  "disabled": true
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-10-01",
+                  "description": "string; YYYY-MM-DD. Inclusive createdAt lower bound, YYYY-MM-DD UTC.",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-10-31",
+                  "description": "string; YYYY-MM-DD. Inclusive through this UTC date’s end; cannot precede fromDate.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## Overview\n\nFilter and paginate non-deleted audit entries with safe actor information.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/audit-logs`\n\n### Body\n\nNone.\n\n### Query parameters\n\n| Field | Required | Validation / meaning |\n| --- | --- | --- |\n| `page` | No | number; integer; greater than 0; maximum 1000000; Default 1; integer 1–1,000,000. |\n| `limit` | No | number; integer; greater than 0; maximum 100; Default 10; integer 1–100. |\n| `sortBy` | No | `createdAt`; Whitelisted sort field; default createdAt. |\n| `sortOrder` | No | `asc`, `desc`; Default desc; asc/desc. |\n| `action` | No | string; trimmed; minimum 1; maximum 100; Exact action; 1–100 characters. |\n| `entityType` | No | string; trimmed; minimum 1; maximum 100; Exact type; 1–100 characters. |\n| `entityId` | No | string; UUID; Exact entity UUID. |\n| `actorUserId` | No | string; UUID; Exact actor User UUID. |\n| `fromDate` | No | string; YYYY-MM-DD; Inclusive createdAt lower bound, YYYY-MM-DD UTC. |\n| `toDate` | No | string; YYYY-MM-DD; Inclusive through this UTC date’s end; cannot precede fromDate. |\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `data` is an array; `meta` contains page, limit and total. Empty pages use []. Confirmed data keys: `id`, `actorUserId`, `action`, `entityType`, `entityId`, `oldData`, `newData`, `ipAddress`, `userAgent`, `createdAt`, `actor`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nExact action/entityType/entityId/actorUserId filters plus createdAt date bounds. toDate includes the UTC end of that date. Only createdAt sorting is supported. Common secret JSON keys are redacted; ordinary oldData/newData are retained.\n\n## Postman usage\n\nLog in as ADMIN before sending. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Log Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Success envelope\", () => { pm.expect(result.success).to.equal(true); pm.expect(result.statusCode).to.equal(200); pm.expect(typeof result.message).to.equal(\"string\"); pm.expect(Object.prototype.hasOwnProperty.call(result, \"data\")).to.equal(true); });",
+                  "  pm.test(\"Safe data object\", () => { pm.expect(result.data !== null && typeof result.data === \"object\").to.equal(true); pm.expect(Object.prototype.hasOwnProperty.call(result.data, \"password\")).to.equal(false); });",
+                  "  if (result.success === true) {",
+                  "    { const id = result?.data?.id; if (!Array.isArray(result.data) || result.data.length > 0) pm.test(\"auditLogId is a UUID\", () => pm.expect(typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)).to.equal(true)); if (typeof id === \"string\" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) pm.environment.set(\"auditLogId\", id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/audit-logs/{{auditLogId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "audit-logs", "{{auditLogId}}"]
+            },
+            "description": "## Overview\n\nRead one non-deleted audit entry.\n\n## Authentication\n\nADMIN only; uses {{ADMIN_token}}. Inactive/deleted accounts cannot use protected routes. Store raw tokens without a Bearer prefix.\n\n## Request\n\n`GET /api/v1/audit-logs/:id`\n\nPath `id`: required UUID from `{{auditLogId}}`.\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ success:true, statusCode:200, message:\"\", data }`. `meta` is omitted. Confirmed data keys: `id`, `actorUserId`, `action`, `entityType`, `entityId`, `oldData`, `newData`, `ipAddress`, `userAgent`, `createdAt`, `actor`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 400 | Invalid body, UUID or supported query value where a validator is registered. |\n| 401 | Missing, invalid or expired token; missing/deleted account. |\n| 403 | Forbidden role, inactive account, required profile unavailable or ownership failure. |\n| 404 | Audit log not found |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nADMIN only. System actor/entity identifiers may be null. oldData/newData are retained with sensitive key redaction. No updatedAt column or public audit mutations exist.\n\n## Postman usage\n\nLog in as ADMIN before sending. Replace the fictional UUID with a real test ID or capture it from a preceding create request. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "ADMIN-only read access to non-deleted audit logs. Internal reviews/status changes create entries. JSON retains ordinary fields and redacts common secret keys. No public audit mutation routes exist.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Get Application Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                  "let result;",
+                  "pm.test(\"JSON object response\", () => { result = pm.response.json(); pm.expect(result !== null && typeof result === \"object\" && !Array.isArray(result)).to.equal(true); });",
+                  "if (result && pm.response.code === 200) {",
+                  "  pm.test(\"Liveness fields\", () => { pm.expect(result.status).to.equal(\"ok\"); pm.expect(typeof result.time === \"string\" && Number.isFinite(Date.parse(result.time))).to.equal(true); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "## Overview\n\nRead lightweight public liveness with the current ISO timestamp.\n\n## Authentication\n\nPublic; no bearer token required.\n\n## Request\n\n`GET /health`\n\n### Body\n\nNone.\n\n### Query parameters\n\nNone.\n\n## Response\n\nHTTP **200**. Returns `{ \"status\":\"ok\", \"time\":\"<ISO timestamp>\" }`, without the API envelope. Confirmed data keys: `status`, `time`. The saved success example shows the confirmed selected fields with fictional values. All saved examples are illustrative documentation, not captured API executions.\n\n## Error Handling\n\n| HTTP | Meaning |\n| --- | --- |\n| 429 | Global request limit or this route’s confirmed registration/login/submission limit exceeded. |\n\nUnexpected failures may return 500. Global-handler errors use `{ success:false, message, errorMessage:[{path,message}], errorCode? }`, without success-only data/meta/statusCode. Rate-limit errors instead use `{ success:false, statusCode:429, message }`.\n\n## Business Rules\n\nUses {{base_url}}/health outside /api/v1, without querying the database. The global rate limiter still applies.\n\n## Postman usage\n\nFill local credential placeholders before requests that require them. Scripts do not send additional requests or automatically trigger mutation endpoints."
+          },
+          "response": []
+        }
+      ],
+      "description": "Public application liveness at the server root. Uses {status,time}, not the API envelope. This is not a database readiness probe.",
+      "auth": {
+        "type": "noauth"
+      }
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const activeRole = pm.variables.get(\"activeRole\") || \"STUDENT\";",
+          "const reviewerRole = pm.variables.get(\"reviewerRole\") || \"MENTOR\";",
+          "pm.variables.set(\"accessToken\", pm.variables.get(activeRole + \"_token\") || \"\");",
+          "pm.variables.set(\"reviewerToken\", [\"ADMIN\", \"MENTOR\"].includes(reviewerRole) ? (pm.variables.get(reviewerRole + \"_token\") || \"\") : \"\");"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "description": "Server origin; omit trailing slash and /api/v1."
+    },
+    {
+      "key": "activeRole",
+      "value": "STUDENT",
+      "description": "Role for shared requests; login chooses the returned role."
+    },
+    {
+      "key": "reviewerRole",
+      "value": "MENTOR",
+      "description": "ADMIN or MENTOR for review/list/statistics requests."
+    },
+    {
+      "key": "ADMIN_token",
+      "value": "",
+      "description": "Raw ADMIN access token."
+    },
+    {
+      "key": "MENTOR_token",
+      "value": "",
+      "description": "Raw MENTOR access token."
+    },
+    {
+      "key": "STUDENT_token",
+      "value": "",
+      "description": "Raw STUDENT access token."
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "description": "Most recent JSON refresh token, if supplied."
+    },
+    {
+      "key": "refreshTransport",
+      "value": "cookie",
+      "description": "cookie sends {}; body sends refreshToken. Present cookies take precedence."
+    },
+    {
+      "key": "login_email",
+      "value": "john.doe@example.test",
+      "description": "Replace with an existing role account."
+    },
+    {
+      "key": "login_password",
+      "value": "",
+      "description": "Fill locally. Never export real credentials."
+    },
+    {
+      "key": "student_email",
+      "value": "john.doe@example.test",
+      "description": "Fictional registration email."
+    },
+    {
+      "key": "student_password",
+      "value": "",
+      "description": "Fill a new strong password locally."
+    },
+    {
+      "key": "mentor_email",
+      "value": "jane.smith@example.test",
+      "description": "Fictional new mentor email."
+    },
+    {
+      "key": "mentor_password",
+      "value": "",
+      "description": "Fill locally."
+    },
+    {
+      "key": "admin_email",
+      "value": "alex.morgan@example.test",
+      "description": "Fictional new admin email, not seed credentials."
+    },
+    {
+      "key": "admin_password",
+      "value": "",
+      "description": "Fill locally."
+    },
+    {
+      "key": "current_password",
+      "value": "",
+      "description": "Fill the current password locally."
+    },
+    {
+      "key": "new_password",
+      "value": "",
+      "description": "Fill a different strong password locally."
+    },
+    {
+      "key": "updated_email",
+      "value": "updated.student@example.test",
+      "description": "Fictional legacy User update email."
+    },
+    {
+      "key": "repo_url",
+      "value": "https://github.com/example/portfolio.git",
+      "description": "Replace for independent submissions."
+    },
+    {
+      "key": "userId",
+      "value": "11111111-1111-4111-8111-111111111111",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "adminId",
+      "value": "22222222-2222-4222-8222-222222222222",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "mentorId",
+      "value": "33333333-3333-4333-8333-333333333333",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "studentId",
+      "value": "44444444-4444-4444-8444-444444444444",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "submissionId",
+      "value": "f47e4879-08db-45cf-ba12-c7a83350eee3",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "reviewId",
+      "value": "66666666-6666-4666-8666-666666666666",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "auditLogId",
+      "value": "dbacdb81-e817-4058-9bcf-abd3b2237679",
+      "description": "Fictional UUID placeholder; replace or capture from a successful create request."
+    },
+    {
+      "key": "currentUserId",
+      "value": "",
+      "description": "Authenticated User ID; login/session/profile do not overwrite target userId."
+    }
+  ]
+}
