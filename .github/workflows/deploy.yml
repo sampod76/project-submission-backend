@@ -53,7 +53,7 @@ jobs:
           script: |
             set -Eeuo pipefail
 
-            cd ~/apps/project-submission-backend
+            cd ~/apps/sampod/project-submission-backend
 
             bash deploy.sh
 
