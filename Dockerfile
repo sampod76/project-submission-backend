@@ -33,10 +33,6 @@ COPY . .
 
 RUN pnpm build
 
-FROM build AS migrate
-ENV NODE_ENV=production
-CMD ["pnpm", "db:deploy"]
-
 FROM build AS prod
 ENV NODE_ENV=production
 
@@ -63,6 +59,8 @@ RUN corepack enable \
 COPY --chown=node:node --from=prod /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=build /app/prisma ./prisma
+# prisma.config.ts this is need for prisma migrate-> using docker-compose-pro in migration container 
+COPY --chown=node:node --from=build /app/package.json /app/prisma.config.ts ./
 COPY --chown=node:node ecosystem.config.js ./
 COPY --chown=node:node .env.example ./.env.example
 

@@ -1,8 +1,29 @@
 services:
+  # https://app.notion.com/p/sampod/Migration-Docker-Container-4067a1bce8f580828fd1d5cbd3434ba4?source=copy_link
+  migrate:
+    image: ghcr.io/sampod76/project-submission-backend:latest
+    command:
+      [
+        "npx",
+        "--no-install",
+        "prisma",
+        "migrate",
+        "deploy",
+        "--config",
+        "prisma.config.ts",
+      ]
+    env_file:
+      - ${PROJECT_SUBMISSION_ENV_FILE:?Set PROJECT_SUBMISSION_ENV_FILE to the new application env file}
+    restart: "no"
+    networks:
+      - project-submission-backend-network
+
   app:
     image: ghcr.io/sampod76/project-submission-backend:latest
     container_name: project-submission-backend
-    profiles: ["app"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
     env_file:
       - ${PROJECT_SUBMISSION_ENV_FILE:?Set PROJECT_SUBMISSION_ENV_FILE to the new application env file}

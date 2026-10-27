@@ -1,33 +1,31 @@
 services:
-  postgres:
-    image: postgres:17
-    environment:
-      POSTGRES_DB: project_submission
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d project_submission"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - project-submission-backend-network
   migrate:
+    image: project-submission-backend:local
     build:
       context: .
-      target: migrate
+      dockerfile: Dockerfile
+    command:
+      [
+        "npx",
+        "--no-install",
+        "prisma",
+        "migrate",
+        "deploy",
+        "--config",
+        "prisma.config.ts",
+      ]
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/project_submission?schema=public
     depends_on:
       postgres:
         condition: service_healthy
+    restart: "no"
     networks:
       - project-submission-backend-network
   app:
+    image: project-submission-backend:local
     build:
       context: .
       dockerfile: Dockerfile
